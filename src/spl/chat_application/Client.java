@@ -74,10 +74,16 @@ public class Client {
 				}
 
 				try {
-					color = MessageColor.valueOf(args[1].to);	
+					color = MessageColor.valueOf(args[1].toUpperCase());	
+				}
+				catch(Exception e) {
+					System.err.println("Unknown color, use one of the following:");
+					for (Color c : Color.values())) {
+						System.out.println(c.name());
+					}
 				}
 			} else {
-				connection.sendData(new Message(username, MessageType.AUTH, color, input));
+				connection.sendData(new Message(username, MessageType.MESSAGE, color, input));
 			}
 		}
 	}
@@ -107,8 +113,11 @@ class ClientConnection extends Thread
 					throw new RuntimeException("Wrong username and/or password");
 				}
 			}
-			else {
+			else if (message.type == MessageType.MESSAGE) {
 				System.out.println(formatMessage(message));
+			}
+			else {
+				System.err.println("Received unknown message type");
 			}
 		}
 	}

@@ -10,9 +10,22 @@ let
   vscode-with-extensions = pkgs.vscode-with-extensions.override {
     vscodeExtensions = extensions;
   };
+  # featureIDE = stdenv.mkDerivation {
+  #   pname = "FeatureIDE";
+  #   version = "3.8.0";
+
+  #   src = fetchzip {
+  #    url = "https://github.com/FeatureIDE/FeatureIDE/releases/download/v3.8.0/eclipse4.20.0committers-featureide3.8.0-linux64.zip";
+  #    sha256 = "1h1zgzvsjr2y1yh486p54z7zj6igyfpdr09cl039vi1k810jwywn";
+  #    stripRoot = false; 
+  #  };
+
+   # buildInputs = [ pkgs.autoPatchelfHook ];
+  #};
+
 in pkgs.mkShell {
   buildInputs = [
-    openjdk
     vscode-with-extensions
+    # featureIDE
   ];
 }
