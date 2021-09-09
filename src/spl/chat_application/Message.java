@@ -1,17 +1,27 @@
 package spl.chat_application;
 
+import java.util.Base64;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 public class Message {
 	public String user;
 	public MessageType type;
 	public MessageColor color;
 	public String content;
 
-	public Message(String user, MessageType type, MessageColour color, String content)
-	{
+	public Message(String user, MessageType type, MessageColor color, String content) {
 		this.user = user;
 		this.type = type;
 		this.color = color;
 		this.content = content;
+	}
+
+	public String toString() {
+		return "user: " + this.user + ", type: " + this.type.name() + ", color: " + this.color.name() + ", content: "
+				+ this.content;
+
 	}
 
 	public String serialize() {
@@ -25,16 +35,16 @@ public class Message {
 		return new StringBuilder(enc).reverse().toString();
 	}
 
-	public static Message deserialize(String data) {
-		String dec = new StringBuilder(data).reverse().toString()
+	public static Message deserialize(String data) throws ParseException {
+		String dec = new StringBuilder(data).reverse().toString();
 		String json = new String(Base64.getDecoder().decode(dec));
 
-		JSONObject jsonObject = new JSONParser().parse(json);
+		JSONObject jsonObject = (JSONObject) new JSONParser().parse(json);
 
-		String user = (String)jsonObject.get("user");
-		MessageType type = MessageType.valueOf((String)jsonObject.get("type"));
-		MessageColor color = MessageColor.valueOf((String)jsonObject.get("color"));
-		String content = (String)jsonObject.get("content");
+		String user = (String) jsonObject.get("user");
+		MessageType type = MessageType.valueOf((String) jsonObject.get("type"));
+		MessageColor color = MessageColor.valueOf((String) jsonObject.get("color"));
+		String content = (String) jsonObject.get("content");
 
 		return new Message(user, type, color, content);
 	}
