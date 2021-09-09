@@ -3,38 +3,40 @@ package spl.chat_application;
 import java.io.*;
 import java.net.*;
 
+import org.json.simple.parser.ParseException;
+
 public class Client {
 
-	private static String formatMessage(Message msg) {
+	public static String formatMessage(Message msg) {
 		if (msg.type != MessageType.MESSAGE) {
-			throw new ArgumentedException("Only messages can be printed.");
+			throw new IllegalArgumentException("Only messages can be printed.");
 		}
 
 		String startColor = "";
 
 		switch (msg.color) {
-		case MessageColor.BLACK:
+		case BLACK:
 			startColor = "\u001b[30m";
 			break;
-		case MessageColor.RED:
+		case RED:
 			startColor = "\u001b[31m";
 			break;
-		case MessageColor.GREEN:
+		case GREEN:
 			startColor = "\u001b[32m";
 			break;
-		case MessageColor.YELLOW:
+		case YELLOW:
 			startColor = "\u001b[33m";
 			break;
-		case MessageColor.BLUE:
+		case BLUE:
 			startColor = "\u001b[34m";
 			break;
-		case MessageColor.MAGENTA:
+		case MAGENTA:
 			startColor = "\u001b[35m";
 			break;
-		case MessageColor.CYAN:
+		case CYAN:
 			startColor = "\u001b[36m";
 			break;
-		case MessageColor.WHITE:
+		case WHITE:
 			startColor = "\u001b[36m";
 			break;
 		}
@@ -42,7 +44,7 @@ public class Client {
 		return startColor + msg.content + "\u001b[0m";
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws UnknownHostException, IOException {
 		if (args.length != 2) {
 			System.err.println("usage: HOST PORT");
 			System.exit(-1);
@@ -50,6 +52,8 @@ public class Client {
 
 		String host = args[0];
 		int port = Integer.parseInt(args[1]);
+
+		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 
 		System.out.println("Please enter username");
 		String username = stdIn.readLine();
@@ -61,70 +65,80 @@ public class Client {
 		ClientConnection connection = new ClientConnection(socket);
 		connection.start();
 
-		connection.sendData(new Message(username, MessageType.AUTH, Color.BLACK, password));
+		try {
+			connection.sendData(new Message(username, MessageType.AUTH, MessageColor.BLACK, password));
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
 
 		String input;
-		MessageColor color = Color.BLACK;
+		MessageColor color = MessageColor.BLACK;
 		while ((input = stdIn.readLine()) != null) {
-			if (input.StartsWith("/color")) {
-				String[] args = input.trim().split("\\s+");
-				if (args.length != 2) {
+			if (input.startsWith("/color")) {
+				String[] cArgs = input.trim().split("\\s+");
+				if (cArgs.length != 2) {
 					System.err.println("Color command format: /color <COLOR>");
 					continue;
 				}
 
 				try {
-					color = MessageColor.valueOf(args[1].toUpperCase());	
-				}
-				catch(Exception e) {
+					color = MessageColor.valueOf(cArgs[1].toUpperCase());
+				} catch (Exception e) {
 					System.err.println("Unknown color, use one of the following:");
-					for (Color c : Color.values())) {
+					for (MessageColor c : MessageColor.values()) {
 						System.out.println(c.name());
 					}
 				}
 			} else {
-				connection.sendData(new Message(username, MessageType.MESSAGE, color, input));
+				try {
+					connection.sendData(new Message(username, MessageType.MESSAGE, color, input));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
 
 }
 
-class ClientConnection extends Thread
-{
+class ClientConnection extends Thread {
 	private Socket socket = null;
 	private Boolean auth = null;
+	private PrintWriter writer;
 
-	public ClientConnection(Socket socket)
-	{
+	public ClientConnection(Socket socket) throws IOException {
 		this.socket = socket;
+
+		OutputStream output = socket.getOutputStream();
+		this.writer = new PrintWriter(output, true);
 	}
 
-	public void run()
-	{
+	public void run() {
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
 			Message message = Message.deserialize(in.readLine());
 			if (message.type == MessageType.AUTH_RESPONSE) {
 				this.auth = Boolean.valueOf(message.content);
 				if (this.auth) {
 					System.out.println("Authenticated you can now start messaging.");
-				}
-				else {
+				} else {
 					throw new RuntimeException("Wrong username and/or password");
 				}
-			}
-			else if (message.type == MessageType.MESSAGE) {
-				System.out.println(formatMessage(message));
-			}
-			else {
+			} else if (message.type == MessageType.MESSAGE) {
+				System.out.println(Client.formatMessage(message));
+			} else {
 				System.err.println("Received unknown message type");
 			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			e.printStackTrace();
 		}
 	}
 
-	public void sendData(Message msg) {
-		try (PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
-			out.println(msg.serialize());
-		}
+	public void sendData(Message msg) throws IOException {
+		System.out.println("Sending out msg: " + msg);
+
+		this.writer.println(msg.serialize());
+
 	}
 }

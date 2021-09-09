@@ -100,17 +100,18 @@ class UserThread extends Thread {
 			String sName = "Server";
 			String clientMessage;
 
-			do {
+			while ((clientMessage = reader.readLine()) != null) {
+
 				clientMessage = reader.readLine();
 				Message msg = Message.deserialize(clientMessage);
 
 				switch (msg.type) {
 				case AUTH:
-					Message authResponse = new Message(sName, MessageType.AUTH_RESPONSE, msgColor, "0");
+					Message authResponse = new Message(sName, MessageType.AUTH_RESPONSE, msgColor, "false");
 
 					if (server.authenticate(msg.content, this)) {
 						this.authenticated = true;
-						authResponse.content = "1";
+						authResponse.content = "true";
 
 						String serverMsg = "New user connected: " + msg.user;
 						server.broadcast(new Message(sName, MessageType.MESSAGE, MessageColor.BLACK, serverMsg), this);
@@ -123,25 +124,35 @@ class UserThread extends Thread {
 
 					break;
 				case MESSAGE:
+					System.out.println("Waar is alles");
+
 					if (this.authenticated) {
 						server.broadcast(msg, this);
 					}
 
 					break;
 				}
+			}
+		}
 
-			} while (!clientMessage.equals("quit"));
-
-			socket.close();
-		} catch (IOException ex) {
+		catch (IOException ex) {
 			System.out.println("Error in UserThread: " + ex.getMessage());
 			ex.printStackTrace();
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
+
+		try {
+			this.socket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("Finished...");
 	}
 
 	void sendMessage(Message message) {
-		this.writer.println(message.serialize());
+		String msg = message.serialize();
+		this.writer.println(msg);
 	}
 }

@@ -7,5 +7,6 @@ public enum MessageColor {
 	YELLOW,
 	BLUE,
 	MAGENTA,
+	CYAN,
 	WHITE
 }
