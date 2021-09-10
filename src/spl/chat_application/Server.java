@@ -20,7 +20,7 @@ public class Server {
 		this.port = port;
 	}
 
-	public void run() {
+	public void execute() {
 		try (ServerSocket serverSocket = new ServerSocket(port)) {
 
 			System.out.println("Server is listening on port " + port);
@@ -49,7 +49,7 @@ public class Server {
 		int port = Integer.parseInt(args[0]);
 
 		Server server = new Server(port);
-		server.run();
+		server.execute();
 	}
 
 	void broadcast(Message msg, UserThread exclude) {
@@ -78,13 +78,11 @@ class UserThread extends Thread {
 	boolean authenticated;
 	private Socket socket;
 	private Server server;
-
 	private PrintWriter writer;
 
 	public UserThread(Socket socket, Server server) {
 		this.socket = socket;
 		this.server = server;
-
 		this.authenticated = false;
 	}
 
@@ -100,9 +98,14 @@ class UserThread extends Thread {
 			String sName = "Server";
 			String clientMessage;
 
-			while ((clientMessage = reader.readLine()) != null) {
+			while (true) {
 
 				clientMessage = reader.readLine();
+				
+				if (clientMessage == null) {
+					continue;
+				}
+				
 				Message msg = Message.deserialize(clientMessage);
 
 				switch (msg.type) {
@@ -124,8 +127,6 @@ class UserThread extends Thread {
 
 					break;
 				case MESSAGE:
-					System.out.println("Waar is alles");
-
 					if (this.authenticated) {
 						server.broadcast(msg, this);
 					}
@@ -145,7 +146,6 @@ class UserThread extends Thread {
 		try {
 			this.socket.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		System.out.println("Finished...");

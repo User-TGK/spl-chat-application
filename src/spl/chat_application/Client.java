@@ -115,18 +115,20 @@ class ClientConnection extends Thread {
 
 	public void run() {
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
-			Message message = Message.deserialize(in.readLine());
-			if (message.type == MessageType.AUTH_RESPONSE) {
-				this.auth = Boolean.valueOf(message.content);
-				if (this.auth) {
-					System.out.println("Authenticated you can now start messaging.");
+			while (true) {
+				Message message = Message.deserialize(in.readLine());
+				if (message.type == MessageType.AUTH_RESPONSE) {
+					this.auth = Boolean.valueOf(message.content);
+					if (this.auth) {
+						System.out.println("Authenticated you can now start messaging.");
+					} else {
+						throw new RuntimeException("Wrong username and/or password");
+					}
+				} else if (message.type == MessageType.MESSAGE) {
+					System.out.println(Client.formatMessage(message));
 				} else {
-					throw new RuntimeException("Wrong username and/or password");
+					System.err.println("Received unknown message type");
 				}
-			} else if (message.type == MessageType.MESSAGE) {
-				System.out.println(Client.formatMessage(message));
-			} else {
-				System.err.println("Received unknown message type");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
