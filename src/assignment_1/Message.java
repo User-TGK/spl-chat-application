@@ -1,4 +1,4 @@
-package spl.chat_application;
+package assignment_1;
 
 import java.util.Base64;
 import org.json.simple.JSONObject;

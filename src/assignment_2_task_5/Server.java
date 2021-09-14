@@ -1,4 +1,4 @@
-package spl.chat_application;
+package assignment_2_task_5;
 
 import java.io.*;
 import java.net.*;

@@ -1,4 +1,4 @@
-package spl.chat_application;
+package assignment_2_task_4;
 
 public enum MessageType {
 	AUTH,
