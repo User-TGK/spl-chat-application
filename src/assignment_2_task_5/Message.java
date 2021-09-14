@@ -35,7 +35,7 @@ public class Message {
 		return new StringBuilder(enc).reverse().toString();
 	}
 
-	public static Message deserialize(String data) throws ParseException {		
+	public static Message deserialize(String data) throws ParseException {
 		String dec = new StringBuilder(data).reverse().toString();
 		String json = new String(Base64.getDecoder().decode(dec));
 

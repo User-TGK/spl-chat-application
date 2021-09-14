@@ -5,16 +5,18 @@ import java.net.*;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Observer;
+import java.util.Observable;
 import java.util.Set;
 
 import org.json.simple.parser.ParseException;
 
-public class Server {
+public class Server extends Observable {
 	private final List<String> passwords = Arrays.asList("foo", "bar");
 
 	private int port;
-	private Set<UserThread> authenticated = new HashSet<>();
-	private Set<UserThread> unauthenticated = new HashSet<>();
+	private Set<UserThread> threads = new HashSet<>();
+
 
 	public Server(int port) {
 		this.port = port;
@@ -30,7 +32,7 @@ public class Server {
 				System.out.println("New client connected");
 
 				UserThread newConnection = new UserThread(socket, this);
-				this.unauthenticated.add(newConnection);
+				this.threads.add(newConnection);
 				newConnection.start();
 			}
 
@@ -52,29 +54,19 @@ public class Server {
 		server.execute();
 	}
 
-	void broadcast(Message msg, UserThread exclude) {
-		System.out.println(msg);
-
-		for (UserThread user : this.authenticated) {
-			if (user != exclude) {
-				user.sendMessage(msg);
-			}
+	public void sendMessage(Message msg) {
+		if (msg.type == MessageType.MESSAGE) {
+			setChanged();
+			notifyObservers(msg);
 		}
 	}
 
 	boolean authenticate(String password, UserThread authenticator) {
-		if (this.passwords.contains(password)) {
-			this.unauthenticated.remove(authenticator);
-			this.authenticated.add(authenticator);
-
-			return true;
-		}
-
-		return false;
+		return this.passwords.contains(password);
 	}
 }
 
-class UserThread extends Thread {
+class UserThread extends Thread implements Observer {
 	boolean authenticated;
 	private Socket socket;
 	private Server server;
@@ -101,36 +93,34 @@ class UserThread extends Thread {
 			while (true) {
 
 				clientMessage = reader.readLine();
-				
+
 				if (clientMessage == null) {
 					continue;
 				}
-				
+
 				Message msg = Message.deserialize(clientMessage);
+				this.server.sendMessage(msg);
 
 				switch (msg.type) {
 				case AUTH:
 					Message authResponse = new Message(sName, MessageType.AUTH_RESPONSE, msgColor, "false");
 
 					if (server.authenticate(msg.content, this)) {
-						this.authenticated = true;
 						authResponse.content = "true";
 
 						String serverMsg = "New user connected: " + msg.user;
-						server.broadcast(new Message(sName, MessageType.MESSAGE, MessageColor.BLACK, serverMsg), this);
+						this.server.sendMessage(new Message(sName, MessageType.MESSAGE, MessageColor.BLACK, serverMsg));
+						this.server.addObserver(this);
+						this.authenticated = true;
 					}
 
 					this.sendMessage(authResponse);
 					break;
 				case AUTH_RESPONSE:
 					System.out.println("Server received unexpected AUTH_RESPONSE");
-
 					break;
 				case MESSAGE:
-					if (this.authenticated) {
-						server.broadcast(msg, this);
-					}
-
+					System.out.println("Server received MESSAGE: " + msg.toString());
 					break;
 				}
 			}
@@ -149,6 +139,11 @@ class UserThread extends Thread {
 			e.printStackTrace();
 		}
 		System.out.println("Finished...");
+	}
+
+	@Override
+	public void update(Observable o, Object message) {
+		this.sendMessage((Message) message);
 	}
 
 	void sendMessage(Message message) {

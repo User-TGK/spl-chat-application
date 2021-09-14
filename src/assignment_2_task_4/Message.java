@@ -21,7 +21,6 @@ public class Message {
 	public String toString() {
 		return "user: " + this.user + ", type: " + this.type.name() + ", color: " + this.color.name() + ", content: "
 				+ this.content;
-
 	}
 
 	public String serialize() {
@@ -31,15 +30,38 @@ public class Message {
 		obj.put("color", this.color.name());
 		obj.put("content", this.content);
 
-		String enc = Base64.getEncoder().encodeToString(obj.toJSONString().getBytes());
-		return new StringBuilder(enc).reverse().toString();
+		String enc = obj.toJSONString();
+		switch (Config.Encryption) {
+			case BASE64:
+				enc = Base64.getEncoder().encodeToString(enc.getBytes());
+				break;
+			case REVERSE:
+				enc = (new StringBuilder(enc)).reverse().toString();
+				break;
+			case BASE64REVERSE:
+				enc = Base64.getEncoder().encodeToString(enc.getBytes());
+				enc = (new StringBuilder(enc)).reverse().toString();
+				break;
+		}
+
+		return enc;
 	}
 
-	public static Message deserialize(String data) throws ParseException {		
-		String dec = new StringBuilder(data).reverse().toString();
-		String json = new String(Base64.getDecoder().decode(dec));
+	public static Message deserialize(String data) throws ParseException {
+		switch (Config.Encryption) {
+			case BASE64:
+				data = new String(Base64.getDecoder().decode(data));
+				break;
+			case REVERSE:
+				data = new StringBuilder(data).reverse().toString();
+				break;
+			case BASE64REVERSE:
+				data = new StringBuilder(data).reverse().toString();
+				data = new String(Base64.getDecoder().decode(data));
+				break;
+		}
 
-		JSONObject jsonObject = (JSONObject) new JSONParser().parse(json);
+		JSONObject jsonObject = (JSONObject) new JSONParser().parse(data);
 
 		String user = (String) jsonObject.get("user");
 		MessageType type = MessageType.valueOf((String) jsonObject.get("type"));

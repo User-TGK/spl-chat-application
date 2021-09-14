@@ -45,30 +45,34 @@ public class Client {
 	}
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
-		if (args.length != 2) {
-			System.err.println("usage: HOST PORT");
+		try {
+			Config.parseArgs(args);
+		} catch (IllegalArgumentException ie) {
+			System.err.println(ie.getMessage());
+			Config.usage();
 			System.exit(-1);
 		}
-
-		String host = args[0];
-		int port = Integer.parseInt(args[1]);
 
 		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 
 		System.out.println("Please enter username");
 		String username = stdIn.readLine();
 
-		System.out.println("Please enter password");
-		String password = stdIn.readLine();
-
-		Socket socket = new Socket(host, port);
+		Socket socket = new Socket(Config.Host, Config.Port);
 		ClientConnection connection = new ClientConnection(socket);
 		connection.start();
 
-		try {
-			connection.sendData(new Message(username, MessageType.AUTH, MessageColor.BLACK, password));
-		} catch (IOException e1) {
-			e1.printStackTrace();
+		if (Config.EnableAuthentication) {
+			System.out.println("Please enter password");
+			String password = stdIn.readLine();
+
+			try {
+				connection.sendData(new Message(username, MessageType.AUTH, MessageColor.BLACK, password));
+			} catch (IOException e1) {
+				if (Config.EnableLogging) {
+					e1.printStackTrace();
+				}
+			}
 		}
 
 		String input;
@@ -93,12 +97,13 @@ public class Client {
 				try {
 					connection.sendData(new Message(username, MessageType.MESSAGE, color, input));
 				} catch (IOException e) {
-					e.printStackTrace();
+					if (Config.EnableLogging) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}
 	}
-
 }
 
 class ClientConnection extends Thread {
@@ -118,29 +123,40 @@ class ClientConnection extends Thread {
 			while (true) {
 				Message message = Message.deserialize(in.readLine());
 				if (message.type == MessageType.AUTH_RESPONSE) {
-					this.auth = Boolean.valueOf(message.content);
-					if (this.auth) {
-						System.out.println("Authenticated you can now start messaging.");
-					} else {
-						throw new RuntimeException("Wrong username and/or password");
+					if (Config.EnableAuthentication) {
+						this.auth = Boolean.valueOf(message.content);
+						if (this.auth) {
+							System.out.println("Authenticated you can now start messaging.");
+						} else {
+							throw new RuntimeException("Wrong username and/or password");
+						}
 					}
 				} else if (message.type == MessageType.MESSAGE) {
 					System.out.println(Client.formatMessage(message));
 				} else {
-					System.err.println("Received unknown message type");
+					if (Config.EnableLogging) {
+						System.err.println("Received unknown message type");
+					}
 				}
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			if (Config.EnableLogging) {
+				e.printStackTrace();
+			}
+			System.exit(-1);
 		} catch (ParseException e) {
-			e.printStackTrace();
+			if (Config.EnableLogging) {
+				e.printStackTrace();
+			}
+			System.exit(-1);
 		}
 	}
 
 	public void sendData(Message msg) throws IOException {
-		System.out.println("Sending out msg: " + msg);
+		if (Config.EnableLogging) {
+			System.out.println("Sending out msg: " + msg);
+		}
 
 		this.writer.println(msg.serialize());
-
 	}
 }
