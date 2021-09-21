@@ -9,7 +9,7 @@ public class Message {
 	public String user;
 	public MessageType type;
 	//#if Color
-//@	public MessageColor color;
+	public MessageColor color;
 	//#endif
 	public String content;
 
@@ -17,14 +17,14 @@ public class Message {
 		String user,
 		MessageType type,
 		//#if Color 
-//@		MessageColor color,
+		MessageColor color,
 		//#endif
 		String content) 
 	{
 		this.user = user;
 		this.type = type;
 		//#if Color
-//@		this.color = color;
+		this.color = color;
 		//#endif
 		this.content = content;
 	}
@@ -33,7 +33,7 @@ public class Message {
 		return "user: " + this.user 
 				+ ", type: " + this.type.name()
 				//#if Color 
-//@				+ ", color: " + this.color.name()
+				+ ", color: " + this.color.name()
 				//#endif
 				+ ", content: " + this.content;
 
@@ -44,17 +44,17 @@ public class Message {
 		obj.put("user", this.user);
 		obj.put("type", this.type.name());
 		//#if Color
-//@		obj.put("color", this.color.name());
+		obj.put("color", this.color.name());
 		//#endif
 		obj.put("content", this.content);
 
 		String enc = obj.toJSONString();
 		//#if Base64
-//@		enc = Base64.getEncoder().encodeToString(obj.toJSONString().getBytes());
+		enc = Base64.getEncoder().encodeToString(obj.toJSONString().getBytes());
 		//#endif
 
 		//#if Reverse
-//@		enc = new StringBuilder(enc).reverse().toString();
+		enc = new StringBuilder(enc).reverse().toString();
 		//#endif
 
 		return enc;
@@ -64,11 +64,11 @@ public class Message {
 		String message = data;
 
 		//#if Reverse
-//@		message = new StringBuilder(message).reverse().toString();
+		message = new StringBuilder(message).reverse().toString();
 		//#endif
 
 		//#if Base64
-//@		message = new String(Base64.getDecoder().decode(message));
+		message = new String(Base64.getDecoder().decode(message));
 		//#endif
 
 		JSONObject jsonObject = (JSONObject) new JSONParser().parse(message);
@@ -76,7 +76,7 @@ public class Message {
 		String user = (String) jsonObject.get("user");
 		MessageType type = MessageType.valueOf((String) jsonObject.get("type"));
 		//#if Color
-//@		MessageColor color = MessageColor.valueOf((String) jsonObject.get("color"));
+		MessageColor color = MessageColor.valueOf((String) jsonObject.get("color"));
 		//#endif
 		String content = (String) jsonObject.get("content");
 
@@ -84,7 +84,7 @@ public class Message {
 					user, 
 					type,
 					//#if Color 
-//@					color,
+					color,
 					//#endif
 					content);
 	}

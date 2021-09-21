@@ -2,6 +2,7 @@ package assignment_3;
 
 import java.io.*;
 import java.net.*;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -10,8 +11,8 @@ import org.json.simple.parser.ParseException;
 
 public class Server {
 	//#if Authentication
-//@	private final List<String> passwords = Arrays.asList("foo", "bar");
-//@	private Set<UserThread> authenticated = new HashSet<>();
+	private final List<String> passwords = Arrays.asList("foo", "bar");
+	private Set<UserThread> authenticated = new HashSet<>();
 	//#endif
 
 	private int port;
@@ -58,40 +59,50 @@ public class Server {
 		server.execute();
 	}
 
-	void broadcast(Message msg, UserThread exclude) {
+	void broadcast(Message msg) {
 		//#if Logging
 		System.out.println(msg);
 		//#endif
 
 		Set<UserThread> clients = this.unauthenticated;
 		//#if Authentication
-//@		clients = this.authenticated;
+		clients = this.authenticated;
 		//#endif
 
 		for (UserThread user : clients) {
-			if (user != exclude) {
-				user.sendMessage(msg);
-			}
+			user.sendMessage(msg);
+		}
+	}
+	
+	void removeConnection(UserThread con) {
+		//#if Authentication
+		if (authenticated.contains(con)) {
+			authenticated.remove(con);
+		}
+		//#endif
+		
+		if (unauthenticated.contains(con)) {
+			unauthenticated.remove(con);
 		}
 	}
 
 	//#if Authentication
-//@	boolean authenticate(String password, UserThread authenticator) {
-//@		if (this.passwords.contains(password)) {
-//@			this.unauthenticated.remove(authenticator);
-//@			this.authenticated.add(authenticator);
-//@
-//@			return true;
-//@		}
-//@
-//@		return false;
-//@	}
+	boolean authenticate(String password, UserThread authenticator) {
+		if (this.passwords.contains(password)) {
+			this.unauthenticated.remove(authenticator);
+			this.authenticated.add(authenticator);
+
+			return true;
+		}
+
+		return false;
+	}
 	//#endif
 }
 
 class UserThread extends Thread {
 	//#if Authentication
-//@	boolean authenticated;
+	boolean authenticated;
 	//#endif
 	private Socket socket;
 	private Server server;
@@ -102,7 +113,7 @@ class UserThread extends Thread {
 		this.server = server;
 
 		//#if Authentication
-//@		this.authenticated = false;
+		this.authenticated = false;
 		//#endif
 	}
 
@@ -115,57 +126,55 @@ class UserThread extends Thread {
 			writer = new PrintWriter(output, true);
 
 			//#if Color
-//@			MessageColor msgColor = MessageColor.BLACK;
+			MessageColor msgColor = MessageColor.BLACK;
 			//#endif
 			String sName = "Server";
 			String clientMessage;
 
-			while (true) {
-
-				clientMessage = reader.readLine();
+			while ((clientMessage = reader.readLine()) != null) {
 				Message msg = Message.deserialize(clientMessage);
 
 				switch (msg.type) {
 				//#if Authentication
-//@				case AUTH:
-//@					Message authResponse = new Message(
-//@						sName,
-//@						MessageType.AUTH_RESPONSE,
+				case AUTH:
+					Message authResponse = new Message(
+						sName,
+						MessageType.AUTH_RESPONSE,
 						//#if Color
-//@						msgColor,
+						msgColor,
 						//#endif
-//@						"false");
-//@
-//@					if (server.authenticate(msg.content, this)) {
-//@						this.authenticated = true;
-//@						authResponse.content = "true";
-//@
-//@						String serverMsg = "New user connected: " + msg.user;
-//@						server.broadcast(new Message(
-//@							sName,
-//@							MessageType.MESSAGE,
+						"false");
+
+					if (server.authenticate(msg.content, this)) {
+						this.authenticated = true;
+						authResponse.content = "true";
+
+						String serverMsg = "New user connected: " + msg.user;
+						server.broadcast(new Message(
+							sName,
+							MessageType.MESSAGE,
 							//#if Color 
-//@							MessageColor.BLACK,
+							MessageColor.BLACK,
 							//#endif
-//@							serverMsg), this);
-//@					}
-//@
-//@					this.sendMessage(authResponse);
-//@					break;
-//@				case AUTH_RESPONSE:
+							serverMsg));
+					}
+
+					this.sendMessage(authResponse);
+					break;
+				case AUTH_RESPONSE:
 					//#if Logging
-//@					System.out.println("Server received unexpected AUTH_RESPONSE");
+					System.out.println("Server received unexpected AUTH_RESPONSE");
 					//#endif
-//@
-//@					break;
+
+					break;
 				//#endif
 				case MESSAGE:
 					//#if Authentication
-//@					if (this.authenticated) {
-//@						server.broadcast(msg, this);
-//@					}
+					if (this.authenticated) {
+						server.broadcast(msg);
+					}
 					//#else
-					server.broadcast(msg, this);
+//@					server.broadcast(msg);
 					//#endif
 					break;
 				}
@@ -181,6 +190,8 @@ class UserThread extends Thread {
 			//#if Logging
 			e.printStackTrace();
 			//#endif
+		} finally {
+			server.removeConnection(this);			
 		}
 
 		try {

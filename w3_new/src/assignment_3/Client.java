@@ -19,7 +19,7 @@ public class Client {
 		Socket socket = new Socket(host, port);
 		ClientConnection connection = new ClientConnection(socket);
 		//#if CommandLine
-		IUI ui = new ConsoleUI();
+//@		IUI ui = new ConsoleUI();
 		//#elif Graphical
 		IUI ui = new GraphicalUI();
 		//#endif
@@ -37,7 +37,7 @@ class ClientConnection extends Thread implements PropertyChangeListener {
 	private PropertyChangeSupport support;
 	private Socket socket = null;
 	//#if Authentication
-//@	private Boolean auth = null;
+	private Boolean auth = null;
 	//#endif
 	private PrintWriter writer;
 
@@ -71,19 +71,17 @@ class ClientConnection extends Thread implements PropertyChangeListener {
 			while (true) {
 				Message message = Message.deserialize(in.readLine());
 				if (message.type == MessageType.MESSAGE) {
-					this.support.firePropertyChange("ClientConnection", "message", message);
+					this.support.firePropertyChange("ClientConnectionMessage", null, message);
 				}
 				//#if Authentication
-//@				else if (message.type == MessageType.AUTH_RESPONSE) {
-//@					this.auth = Boolean.valueOf(message.content);
-//@					if (this.auth) {
-						//#if Logging
-//@						System.out.println("Authenticated you can now start messaging.");
-						//#endif
-//@					} else {
-//@						throw new RuntimeException("Wrong username and/or password");
-//@					}
-//@				} 
+				else if (message.type == MessageType.AUTH_RESPONSE) {
+					this.auth = Boolean.valueOf(message.content);
+					if (this.auth) {
+						this.support.firePropertyChange("ClientConnectionAuthorized", null, null);
+					} else {
+						this.support.firePropertyChange("ClientConnectionUnauthorized", null, null);
+					}
+				} 
 				//#endif
 				else {
 					//#if Logging
