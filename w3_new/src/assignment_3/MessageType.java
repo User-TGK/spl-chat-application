@@ -1,7 +1,9 @@
 package assignment_3;
 
 public enum MessageType {
-	AUTH,
-	AUTH_RESPONSE,
+	//#if Authentication
+//@	AUTH,
+//@	AUTH_RESPONSE,
+	//#endif
 	MESSAGE
 }

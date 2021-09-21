@@ -1,7 +1,9 @@
 package assignment_3;
 
+import java.io.*;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.beans.*;
 
 public class ConsoleUI implements IUI {
@@ -19,22 +21,44 @@ public class ConsoleUI implements IUI {
 		this.support.removePropertyChangeListener(pcl);
 	}
 
-	public void propertyChange(PropertyChangeEvent evt) throws IOException {
+	public void propertyChange(PropertyChangeEvent evt) {
 		System.out.println(this.formatMessage((Message) evt.getNewValue()));
 	}
 
 	public void run() {
 		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 
+		System.out.println("Please enter username");
+		String username = null;
+		try {
+			username = stdIn.readLine();
+		}
+		catch (IOException e) {
+			//#if Logging
+			e.printStackTrace();
+			//#endif
+			username = null;
+		} 
+
 		//#if Authentication
-//@
-//@		System.out.println("Please enter username");
-//@		String username = stdIn.readLine();
-//@
 //@		System.out.println("Please enter password");
-//@		String password = stdIn.readLine();
+//@		String password = null;
 //@
+//@		try {
+//@			password = stdIn.readLine();
+//@		}
+//@		catch (IOException e) {
+			//#if Logging
+//@			e.printStackTrace();
+			//#endif
+//@			password = null;
+//@		} 
+//@
+		//#if Color
 //@		this.conn.sendData(new Message(username, MessageType.AUTH, MessageColor.BLACK, password));
+		//#else
+//@		this.conn.sendData(new Message(username, MessageType.AUTH, password));
+		//#endif
 //@
 		//#endif
 
@@ -43,7 +67,16 @@ public class ConsoleUI implements IUI {
 		//#if Color
 //@		MessageColor color = MessageColor.BLACK;
 		//#endif
-		while ((input = stdIn.readLine()) != null) {
+		try {
+			input = stdIn.readLine();
+		}
+		catch (IOException e) {
+			//#if Logging
+			e.printStackTrace();
+			//#endif
+			input = null;
+		} 
+		while (input != null) {
 			//#if Color
 //@			if (input.startsWith("/color")) {
 //@				String[] cArgs = input.trim().split("\\s+");
@@ -64,14 +97,23 @@ public class ConsoleUI implements IUI {
 //@				continue;
 //@			}
 			//#endif
+
+			//#if Color
+			//@		Message msg = new Message(username, MessageType.MESSAGE, color, input)
+			//#else
+					Message msg = new Message(username, MessageType.MESSAGE, input);
+			//#endif
+
+			this.support.firePropertyChange("UI", "message", msg);
+
 			try {
-				Message msg = new Message(username, MessageType.MESSAGE, color, input)
-				this.support.firePropertyChange("UI", "message", msg);
-			} catch (IOException e) {
-				//#if Logging
-//@				e.printStackTrace();
-				//#endif
+				input = stdIn.readLine();
 			}
+			catch (IOException e) {
+				//#if Logging
+					e.printStackTrace();
+				//#endif
+			} 
 		}
 	}
 

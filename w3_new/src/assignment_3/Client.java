@@ -18,7 +18,11 @@ public class Client {
 
 		Socket socket = new Socket(host, port);
 		ClientConnection connection = new ClientConnection(socket);
+		//#if CommandLine
 		IUI ui = new ConsoleUI();
+		//#elif Graphical
+		IUI ui = new GraphicalUI();
+		//#endif
 
 		connection.addPropertyChangeListener(ui);
 		ui.addPropertyChangeListener(connection);
@@ -53,8 +57,13 @@ class ClientConnection extends Thread implements PropertyChangeListener {
 		this.support.removePropertyChangeListener(pcl);
 	}
 
-	public void propertyChange(PropertyChangeEvent evt) throws IOException {
-		this.sendData((Message) evt.getNewValue())
+	public void propertyChange(PropertyChangeEvent evt) {
+		try {
+			this.sendData((Message) evt.getNewValue());
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void run() {
@@ -78,7 +87,7 @@ class ClientConnection extends Thread implements PropertyChangeListener {
 				//#endif
 				else {
 					//#if Logging
-//@					System.err.println("Received unknown message type");
+					System.err.println("Received unknown message type");
 					//#endif
 				}
 			}

@@ -1,7 +1,6 @@
 package assignment_3;
 
 import javax.swing.*;
-import java.awt.*;
 import java.beans.*;
 
 public interface IUI extends PropertyChangeListener {
