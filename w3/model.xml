@@ -18,6 +18,10 @@
 				<feature name="Base64"/>
 				<feature name="Reverse"/>
 			</and>
+			<alt abstract="true" mandatory="true" name="UI">
+				<feature name="CommandLine"/>
+				<feature name="Graphical"/>
+			</alt>
 		</and>
 	</struct>
 </featureModel>
