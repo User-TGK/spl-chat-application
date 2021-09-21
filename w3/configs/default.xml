@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<configuration>
+	<feature name="chat_application"/>
+	<feature name="Authentication"/>
+	<feature name="Color"/>
+	<feature name="Logging"/>
+	<feature name="Encryption"/>
+	<feature name="Base64"/>
+	<feature name="Reverse"/>
+</configuration>
