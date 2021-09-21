@@ -23,16 +23,22 @@ let
    installPhase = ''
      mkdir -p $out/bin
      cp -r eclipse $out/eclipse
-     makeWrapper $out/eclipse/eclipse $out/bin/eclipse --prefix PATH : ${lib.makeBinPath [ pkgs.jdk ]}
+     foo="$XDG_ICON_DIRS:$GSETTINGS_SCHEMAS_PATH\''${XDG_DATA_DIRS:+:}\$XDG_DATA_DIRS"
+     makeWrapper $out/eclipse/eclipse $out/bin/eclipse \
+       --prefix PATH : ${lib.makeBinPath [ pkgs.openjdk ]} \
    '';
 
    buildInputs = [
-     pkgs.autoPatchelfHook
      pkgs.gtk3
      pkgs.cairo
      pkgs.webkitgtk
-     pkgs.jdk
+     pkgs.openjdk
      pkgs.makeWrapper
+   ];
+
+   nativeBuildInputs = [
+     pkgs.wrapGAppsHook
+     pkgs.autoPatchelfHook
    ];
   };
 
