@@ -115,7 +115,6 @@ public class GraphicalUI implements IUI {
 
 	private JPanel initOptionsPane() {
 	      JPanel pane = null;
-	      GraphicalUI that = this;
 
 	      // Create an options pane
 	      JPanel optionsPane = new JPanel(new GridLayout(5, 1));
@@ -142,13 +141,13 @@ public class GraphicalUI implements IUI {
 	      connectButton.addActionListener(new ActionListener() {
 	            public void actionPerformed(ActionEvent e) {
 	            	String user = userField.getText();
-	            	that.username = user;
+	            	username = user;
 	            	//#if Authentication
 	            	String password = passwordField.getText();
             		//#if Color
-            		that.support.firePropertyChange("UI", "message", new Message(user, MessageType.AUTH, MessageColor.BLACK, password));
+            		support.firePropertyChange("UI", "message", new Message(user, MessageType.AUTH, MessageColor.BLACK, password));
             		//#else
-//@					that.support.firePropertyChange("UI", "message", new Message(user, MessageType.AUTH, password));
+//@					support.firePropertyChange("UI", "message", new Message(user, MessageType.AUTH, password));
             		//#endif
 	            	//#else
 //@	            	connectButton.setEnabled(false);
@@ -167,7 +166,6 @@ public class GraphicalUI implements IUI {
 	   }
 
 	 private void initGUI() {
-		 GraphicalUI that = this;
 	      // Set up the options pane
 	      JPanel optionsPane = initOptionsPane();
 
@@ -187,9 +185,9 @@ public class GraphicalUI implements IUI {
 	               chatLine.setText("");
 	               //#if Color
 	               MessageColor c = (MessageColor)colorCombo.getSelectedItem();
-	               that.support.firePropertyChange("UI", "message", new Message(that.username, MessageType.MESSAGE, c, s));
+	               support.firePropertyChange("UI", "message", new Message(username, MessageType.MESSAGE, c, s));
 		   			//#else
-//@		   			that.support.firePropertyChange("UI", "message", new Message(that.username, MessageType.MESSAGE, s));
+//@		   			support.firePropertyChange("UI", "message", new Message(username, MessageType.MESSAGE, s));
 		   			//#endif
 	            }
 	         });
