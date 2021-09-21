@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <configuration>
 	<feature automatic="selected" name="chat_application"/>
-	<feature name="Authentication"/>
-	<feature name="Color"/>
-	<feature name="Logging"/>
-	<feature name="Encryption"/>
-	<feature name="Base64"/>
-	<feature name="Reverse"/>
+	<feature manual="selected" name="Authentication"/>
+	<feature manual="selected" name="Color"/>
+	<feature manual="selected" name="Logging"/>
+	<feature automatic="selected" manual="selected" name="Encryption"/>
+	<feature manual="selected" name="Base64"/>
+	<feature manual="selected" name="Reverse"/>
 	<feature automatic="selected" name="UI"/>
-	<feature manual="selected" name="CommandLine"/>
-	<feature automatic="unselected" name="Graphical"/>
+	<feature automatic="unselected" name="CommandLine"/>
+	<feature manual="selected" name="Graphical"/>
 </configuration>

@@ -14,10 +14,10 @@
 			<feature name="Authentication"/>
 			<feature name="Color"/>
 			<feature name="Logging"/>
-			<and abstract="true" name="Encryption">
+			<or abstract="true" name="Encryption">
 				<feature name="Base64"/>
 				<feature name="Reverse"/>
-			</and>
+			</or>
 			<alt abstract="true" mandatory="true" name="UI">
 				<feature name="CommandLine"/>
 				<feature name="Graphical"/>

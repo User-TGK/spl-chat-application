@@ -59,7 +59,7 @@ public class Server {
 		server.execute();
 	}
 
-	void broadcast(Message msg, UserThread exclude) {
+	void broadcast(Message msg) {
 		//#if Logging
 		System.out.println(msg);
 		//#endif
@@ -69,10 +69,20 @@ public class Server {
 		clients = this.authenticated;
 		//#endif
 
-		for (UserThread user : this.clients) {
-			if (user != exclude) {
-				user.sendMessage(msg);
-			}
+		for (UserThread user : clients) {
+			user.sendMessage(msg);
+		}
+	}
+	
+	void removeConnection(UserThread con) {
+		//#if Authentication
+		if (authenticated.contains(con)) {
+			authenticated.remove(con);
+		}
+		//#endif
+		
+		if (unauthenticated.contains(con)) {
+			unauthenticated.remove(con);
 		}
 	}
 
@@ -91,7 +101,7 @@ public class Server {
 }
 
 class UserThread extends Thread {
-	//#if Authenticated
+	//#if Authentication
 	boolean authenticated;
 	//#endif
 	private Socket socket;
@@ -102,7 +112,7 @@ class UserThread extends Thread {
 		this.socket = socket;
 		this.server = server;
 
-		//#if Authenticated
+		//#if Authentication
 		this.authenticated = false;
 		//#endif
 	}
@@ -121,14 +131,12 @@ class UserThread extends Thread {
 			String sName = "Server";
 			String clientMessage;
 
-			while (true) {
-
-				clientMessage = reader.readLine();
+			while ((clientMessage = reader.readLine()) != null) {
 				Message msg = Message.deserialize(clientMessage);
 
 				switch (msg.type) {
+				//#if Authentication
 				case AUTH:
-					//#if Authentication
 					Message authResponse = new Message(
 						sName,
 						MessageType.AUTH_RESPONSE,
@@ -148,15 +156,10 @@ class UserThread extends Thread {
 							//#if Color 
 							MessageColor.BLACK,
 							//#endif
-							serverMsg), this);
+							serverMsg));
 					}
 
 					this.sendMessage(authResponse);
-					//#else
-					//#if Logging
-					System.out.println("Server received unexpected AUTH");
-					//#endif
-					//#endif
 					break;
 				case AUTH_RESPONSE:
 					//#if Logging
@@ -164,13 +167,14 @@ class UserThread extends Thread {
 					//#endif
 
 					break;
+				//#endif
 				case MESSAGE:
-					//#if Authenticated
+					//#if Authentication
 					if (this.authenticated) {
-						server.broadcast(msg, this);
+						server.broadcast(msg);
 					}
 					//#else
-					server.broadcast(msg, this);
+//@					server.broadcast(msg);
 					//#endif
 					break;
 				}
@@ -186,6 +190,8 @@ class UserThread extends Thread {
 			//#if Logging
 			e.printStackTrace();
 			//#endif
+		} finally {
+			server.removeConnection(this);			
 		}
 
 		try {

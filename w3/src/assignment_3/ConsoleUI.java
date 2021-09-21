@@ -1,12 +1,15 @@
 package assignment_3;
 
+import java.io.*;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
+import java.beans.*;
 
 public class ConsoleUI implements IUI {
 	private PropertyChangeSupport support;
 
-	public ClientConnection() {
+	public ConsoleUI() {
 		this.support = new PropertyChangeSupport(this);
 	}
 
@@ -18,31 +21,80 @@ public class ConsoleUI implements IUI {
 		this.support.removePropertyChangeListener(pcl);
 	}
 
-	public void propertyChange(PropertyChangeEvent evt) throws IOException {
-		System.out.println(this.formatMessage((Message) evt.getNewValue()));
+	public void propertyChange(PropertyChangeEvent evt) {
+		switch (evt.getPropertyName()) {
+		case "ClientConnectionMessage":
+			System.out.println(this.formatMessage((Message) evt.getNewValue()));
+			break;
+		case "ClientConnectionAuthorized":
+			//#if Logging
+			System.out.println("Authenticated you can now start messaging.");
+			//#endif
+			break;
+		case "ClientConnectionUnauthorized":
+			throw new RuntimeException("Wrong username and/or password");
+		default:
+			//#if Logging
+			System.err.println("Unrecognized property changed: " + evt.getPropertyName());
+			//#endif
+			break;
+		}
 	}
 
 	public void run() {
 		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 
-		//#if Authentication
-
 		System.out.println("Please enter username");
-		String username = stdIn.readLine();
+		String username = null;
+		try {
+			username = stdIn.readLine();
+		}
+		catch (IOException e) {
+			//#if Logging
+			e.printStackTrace();
+			//#endif
+			username = null;
+		} 
 
+		//#if Authentication
 		System.out.println("Please enter password");
-		String password = stdIn.readLine();
+		String password = null;
 
-		this.conn.sendData(new Message(username, MessageType.AUTH, MessageColor.BLACK, password));
+		try {
+			password = stdIn.readLine();
+		}
+		catch (IOException e) {
+			//#if Logging
+			e.printStackTrace();
+			//#endif
+			password = null;
+		} 
+
+		//#if Color
+		this.support.firePropertyChange("UI", "message", new Message(username, MessageType.AUTH, MessageColor.BLACK, password));
+		//#else
+//@		this.support.firePropertyChange("UI", "message", new Message(username, MessageType.AUTH, password));
+		//#endif
 
 		//#endif
 
-		String input;
-
+		String input = null;
 		//#if Color
 		MessageColor color = MessageColor.BLACK;
 		//#endif
-		while ((input = stdIn.readLine()) != null) {
+		while (true) {
+			try {
+				input = stdIn.readLine();
+				if (input == null) {
+					break;
+				}
+			}
+			catch (IOException e) {
+				//#if Logging
+				e.printStackTrace();
+				//#endif
+			}
+			
 			//#if Color
 			if (input.startsWith("/color")) {
 				String[] cArgs = input.trim().split("\\s+");
@@ -63,14 +115,14 @@ public class ConsoleUI implements IUI {
 				continue;
 			}
 			//#endif
-			try {
-				Message msg = new Message(username, MessageType.MESSAGE, color, input)
-				this.support.firePropertyChange("UI", "message", msg);
-			} catch (IOException e) {
-				//#if Logging
-				e.printStackTrace();
-				//#endif
-			}
+
+			//#if Color
+			Message msg = new Message(username, MessageType.MESSAGE, color, input);
+			//#else
+//@			Message msg = new Message(username, MessageType.MESSAGE, input);
+			//#endif
+
+			this.support.firePropertyChange("UI", "message", msg);
 		}
 	}
 
@@ -111,7 +163,7 @@ public class ConsoleUI implements IUI {
 
 		return startColor + msg.content + "\u001b[0m";
 		//#else
-		return msg.content;
+//@		return msg.content;
 		//#endif
 	}
 }

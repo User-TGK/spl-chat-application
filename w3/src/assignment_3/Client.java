@@ -2,6 +2,7 @@ package assignment_3;
 
 import java.io.*;
 import java.net.*;
+import java.beans.*;
 
 import org.json.simple.parser.ParseException;
 
@@ -17,7 +18,11 @@ public class Client {
 
 		Socket socket = new Socket(host, port);
 		ClientConnection connection = new ClientConnection(socket);
-		IUI ui = new ConsoleUI(connection);
+		//#if CommandLine
+//@		IUI ui = new ConsoleUI();
+		//#elif Graphical
+		IUI ui = new GraphicalUI();
+		//#endif
 
 		connection.addPropertyChangeListener(ui);
 		ui.addPropertyChangeListener(connection);
@@ -31,16 +36,14 @@ public class Client {
 class ClientConnection extends Thread implements PropertyChangeListener {
 	private PropertyChangeSupport support;
 	private Socket socket = null;
-	private IUI ui = null;
 	//#if Authentication
 	private Boolean auth = null;
 	//#endif
 	private PrintWriter writer;
 
-	public ClientConnection(Socket socket, IUI ui) throws IOException {
+	public ClientConnection(Socket socket) throws IOException {
 		this.support = new PropertyChangeSupport(this);
 		this.socket = socket;
-		this.ui = ui;
 
 		OutputStream output = socket.getOutputStream();
 		this.writer = new PrintWriter(output, true);
@@ -54,8 +57,13 @@ class ClientConnection extends Thread implements PropertyChangeListener {
 		this.support.removePropertyChangeListener(pcl);
 	}
 
-	public void propertyChange(PropertyChangeEvent evt) throws IOException {
-		this.sendData((Message) evt.getNewValue())
+	public void propertyChange(PropertyChangeEvent evt) {
+		try {
+			this.sendData((Message) evt.getNewValue());
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void run() {
@@ -63,17 +71,15 @@ class ClientConnection extends Thread implements PropertyChangeListener {
 			while (true) {
 				Message message = Message.deserialize(in.readLine());
 				if (message.type == MessageType.MESSAGE) {
-					this.support.firePropertyChange("ClientConnection", "message", message);
+					this.support.firePropertyChange("ClientConnectionMessage", null, message);
 				}
 				//#if Authentication
 				else if (message.type == MessageType.AUTH_RESPONSE) {
 					this.auth = Boolean.valueOf(message.content);
 					if (this.auth) {
-						//#if Logging
-						System.out.println("Authenticated you can now start messaging.");
-						//#endif
+						this.support.firePropertyChange("ClientConnectionAuthorized", null, null);
 					} else {
-						throw new RuntimeException("Wrong username and/or password");
+						this.support.firePropertyChange("ClientConnectionUnauthorized", null, null);
 					}
 				} 
 				//#endif

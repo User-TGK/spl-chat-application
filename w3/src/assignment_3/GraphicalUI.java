@@ -2,12 +2,38 @@ package assignment_3;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
+import java.beans.*;
+
+import javax.swing.*;
+
+import javax.swing.border.*;
+
+import javax.swing.text.AttributeSet;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
 
 public class GraphicalUI implements IUI {
     private PropertyChangeSupport support;
+	
+	private JFrame mainFrame = null;
+    private JTextPane chatText = null;
+    private JTextField chatLine = null;
+    private JTextField userField = null;
+    private JButton connectButton = null;
+    //#ifdef Authentication
+    private JTextField passwordField = null;
+    //#endif
+    //#ifdef Color
+    private JComboBox<MessageColor> colorCombo = null;
+	//#endif
+    
+	private String username;
 
-	public ClientConnection() throws IOException {
+	public GraphicalUI() {
         this.support = new PropertyChangeSupport(this);
+		this.username = null;
 	}
 
     public void addPropertyChangeListener(PropertyChangeListener pcl) {
@@ -18,60 +44,183 @@ public class GraphicalUI implements IUI {
 		this.support.removePropertyChangeListener(pcl);
 	}
 
-	public void propertyChange(PropertyChangeEvent evt) {
-		Message msg = (Message) evt.getNewValue();
-		// TODO: append message to chat window.
-	}
-
-
-	private void run() {
-		JFrame frame = new JFrame("Chat Frame");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setSize(400, 400);
-
-		//Creating the MenuBar and adding components
-		JMenuBar mb = new JMenuBar();
-		JMenu m1 = new JMenu("FILE");
-		JMenu m2 = new JMenu("Help");
-		mb.add(m1);
-		mb.add(m2);
-		JMenuItem m11 = new JMenuItem("Open");
-		JMenuItem m22 = new JMenuItem("Save as");
-		m1.add(m11);
-		m1.add(m22);
-
-		//Creating the panel at bottom and adding components
-		JPanel panel = new JPanel(); // the panel is not visible in output
-		JLabel label = new JLabel("");
-
-		JTextField tf = new JTextField(1000); // accepts upto 10 characters
-		JButton send = new JButton("Send");
-		JPopupMenu menu = new JPopupMenu();
-		for (MessageColor c : MessageColor.values()) { 
-			menu.add(c.toString());
+	//#if Color
+	private Color mClrToJClr(MessageColor c) {
+		switch (c) {
+		case BLACK:
+			return Color.BLACK;
+		case RED:
+			return Color.RED;
+		case GREEN:
+			return Color.GREEN;
+		case YELLOW:
+			return Color.YELLOW;
+		case BLUE:
+			return Color.BLUE;
+		case MAGENTA:
+			return Color.MAGENTA;
+		case CYAN:
+			return Color.CYAN;
+		case WHITE:
+			return Color.WHITE;
+		default:
+			return Color.BLACK;
 		}
+	}
+	//#endif
 
-		final JButton button = new JButton();
-		button.setText("Color");
-		button.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent ev) {
-				menu.show(button, button.getBounds().x, button.getBounds().y
-				+ button.getBounds().height);
-			}
-		});
+	public void propertyChange(PropertyChangeEvent evt) {
+		switch (evt.getPropertyName()) {
+		case "ClientConnectionMessage":
+			Message message = (Message) evt.getNewValue();
+			String msg = message.user + ": " + message.content + "\n";
 
-		panel.add(label); // Components Added using Flow Layout
-		panel.add(tf);
-		panel.add(send);
+			//#if Color
+			Color c = this.mClrToJClr(message.color);
+			//#else
+//@			Color c = Color.BLACK;
+			//#endif
+			appendToPane(chatText, msg, c);
+			break;
+		//#ifdef Authentication
+		case "ClientConnectionAuthorized":
+    		JOptionPane.showMessageDialog(mainFrame, "Authentication succeeded.");
+    		connectButton.setEnabled(false);
+    		chatLine.setEnabled(true);
+    		chatLine.requestFocus();
+			break;
+		case "ClientConnectionUnauthorized":
+			JOptionPane.showMessageDialog(mainFrame, "Incorrect username or password", "Warning", JOptionPane.WARNING_MESSAGE);
+			break;
+		//#endif
+		default:
+			//#if Logging
+			System.err.println("Unrecognized property changed: " + evt.getPropertyName());
+			//#endif
+			break;
+		}
+	}
+	
+	private void appendToPane(JTextPane tp, String msg, Color c)
+    {
+		StyleContext sc = StyleContext.getDefaultStyleContext();
+        AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
+        int len = tp.getDocument().getLength();
+        try	{
+        	tp.getDocument().insertString(len, msg, aset);        	
+        } catch (Exception e) {
+        	
+        }
+    }
 
-		// Text Area at the Center
-		JTextArea ta = new JTextArea();
+	private JPanel initOptionsPane() {
+	      JPanel pane = null;
+	      GraphicalUI that = this;
 
-		//Adding Components to the frame.
-		frame.getContentPane().add(BorderLayout.SOUTH, panel);
-		frame.getContentPane().add(BorderLayout.NORTH, mb);
-		frame.getContentPane().add(BorderLayout.CENTER, ta);
-		frame.setVisible(true);
+	      // Create an options pane
+	      JPanel optionsPane = new JPanel(new GridLayout(5, 1));
+
+	      // Username
+	      pane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+	      pane.add(new JLabel("Username:"));
+	      userField = new JTextField(30);
+	      pane.add(userField);
+	      optionsPane.add(pane);
+
+	      //#ifdef Authentication
+	      // Password
+	      pane = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+	      pane.add(new JLabel("Password"));
+	      passwordField = new JTextField(30);
+	      pane.add(passwordField);
+	      optionsPane.add(pane);
+	      //#endif
+
+	      // Connect buttons
+	      JPanel buttonPane = new JPanel(new GridLayout(1, 2));
+	      connectButton = new JButton("Connect");
+	      connectButton.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent e) {
+	            	String user = userField.getText();
+	            	that.username = user;
+	            	//#if Authentication
+	            	String password = passwordField.getText();
+            		//#if Color
+            		that.support.firePropertyChange("UI", "message", new Message(user, MessageType.AUTH, MessageColor.BLACK, password));
+            		//#else
+//@					that.support.firePropertyChange("UI", "message", new Message(user, MessageType.AUTH, password));
+            		//#endif
+	            	//#else
+//@	            	connectButton.setEnabled(false);
+//@	            	chatLine.setEnabled(true);
+//@	            	chatLine.requestFocus();
+					//#endif
+	            }
+	         });
+	      buttonPane.add(connectButton);
+	      optionsPane.add(buttonPane);
+	     
+	      
+	      optionsPane.setPreferredSize(new Dimension(500, 200));
+
+	      return optionsPane;
+	   }
+
+	 private void initGUI() {
+		 GraphicalUI that = this;
+	      // Set up the options pane
+	      JPanel optionsPane = initOptionsPane();
+
+	      // Set up the chat pane
+	      JPanel chatPane = new JPanel(new BorderLayout());
+	      chatText = new JTextPane();
+	      chatText.setEditable(false);
+	      chatText.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+	      chatText.setMargin(new Insets(5, 5, 5, 5));
+	      JScrollPane jsp = new JScrollPane(chatText);
+	      
+	      chatLine = new JTextField();
+	      chatLine.setEnabled(false);
+	      chatLine.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent e) {
+	               String s = chatLine.getText();
+	               chatLine.setText("");
+	               //#if Color
+	               MessageColor c = (MessageColor)colorCombo.getSelectedItem();
+	               that.support.firePropertyChange("UI", "message", new Message(that.username, MessageType.MESSAGE, c, s));
+		   			//#else
+//@		   			that.support.firePropertyChange("UI", "message", new Message(that.username, MessageType.MESSAGE, s));
+		   			//#endif
+	            }
+	         });
+	      chatPane.add(chatLine, BorderLayout.SOUTH);
+	      chatPane.add(jsp, BorderLayout.CENTER);
+	      
+	      //#ifdef Color
+	      // Dropdown
+	      colorCombo = new JComboBox<MessageColor>(MessageColor.values());
+	      chatPane.add(colorCombo, BorderLayout.NORTH);
+	      //#endif
+	      
+	      chatPane.setPreferredSize(new Dimension(500, 200));
+
+	      // Set up the main pane
+	      JPanel mainPane = new JPanel(new BorderLayout());
+	      mainPane.add(optionsPane, BorderLayout.WEST);
+	      mainPane.add(chatPane, BorderLayout.CENTER);
+
+	      // Set up the main frame
+	      mainFrame = new JFrame("SPL Chat");
+	      mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	      mainFrame.setContentPane(mainPane);
+	      mainFrame.setSize(mainFrame.getPreferredSize());
+	      mainFrame.setLocation(200, 200);
+	      mainFrame.pack();
+	      mainFrame.setVisible(true);
+	   }
+	
+	public void run() {
+		initGUI();
 	}
 
 }
