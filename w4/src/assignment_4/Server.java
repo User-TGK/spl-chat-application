@@ -11,13 +11,8 @@ import java.util.Set;
 import org.json.simple.parser.ParseException;
 
 public class Server {
-	// #if Authentication
-	private final List<String> passwords = Arrays.asList("foo", "bar");
-	private Set<UserThread> authenticated = new HashSet<>();
-	// #endif
-
 	private int port;
-	private Set<UserThread> unauthenticated = new HashSet<>();
+	private Set<UserThread> connections = new HashSet<>();
 
 	public PluginRegistry pluginRegistry;
 
@@ -35,7 +30,7 @@ public class Server {
 				System.out.println("New client connected");
 
 				UserThread newConnection = new UserThread(socket, this);
-				this.unauthenticated.add(newConnection);
+				this.connections.add(newConnection);
 				newConnection.start();
 			}
 
@@ -69,46 +64,36 @@ public class Server {
 	void broadcast(Message msg) {
 		System.out.println(msg);
 
-		Set<UserThread> clients = this.unauthenticated;
-		// #if Authentication
-		clients = this.authenticated;
-		// #endif
+		Set<UserThread> clients = this.connections;
 
-		for (UserThread user : clients) {
-			user.sendMessage(msg);
+		if (pluginRegistry.authenticator != null) {
+
+			for (UserThread user : clients) {
+				if (pluginRegistry.authenticator.isAuthenticated(user.getConnectionId())) {
+					user.sendMessage(msg);
+				}
+			}
+		}
+
+		else {
+			for (UserThread user : clients) {
+				user.sendMessage(msg);
+			}
 		}
 	}
 
 	void removeConnection(UserThread con) {
-		// #if Authentication
-		if (authenticated.contains(con)) {
-			authenticated.remove(con);
+		if (connections.contains(con)) {
+			connections.remove(con);
 		}
-		// #endif
 
-		if (unauthenticated.contains(con)) {
-			unauthenticated.remove(con);
+		if (pluginRegistry.authenticator != null) {
+			pluginRegistry.authenticator.remove(con.getConnectionId());
 		}
 	}
-
-	// #if Authentication
-	boolean authenticate(String password, UserThread authenticator) {
-		if (this.passwords.contains(password)) {
-			this.unauthenticated.remove(authenticator);
-			this.authenticated.add(authenticator);
-
-			return true;
-		}
-
-		return false;
-	}
-	// #endif
 }
 
 class UserThread extends Thread {
-	// #if Authentication
-	boolean authenticated;
-	// #endif
 	private Socket socket;
 	private Server server;
 	private PrintWriter writer;
@@ -116,10 +101,6 @@ class UserThread extends Thread {
 	public UserThread(Socket socket, Server server) {
 		this.socket = socket;
 		this.server = server;
-
-		// #if Authentication
-		this.authenticated = false;
-		// #endif
 	}
 
 	public void run() {
@@ -149,25 +130,27 @@ class UserThread extends Thread {
 				Message msg = Message.deserialize(decryptedMessage);
 
 				switch (msg.type) {
-				// #if Authentication
 				case AUTH:
 					Message authResponse = new Message(sName, MessageType.AUTH_RESPONSE,
 							// #if Color
 							msgColor,
 							// #endif
-							"false");
+							"true");
 
-					if (server.authenticate(msg.content, this)) {
-						this.authenticated = true;
-						authResponse.content = "true";
-
-						String serverMsg = "New user connected: " + msg.user;
-						server.broadcast(new Message(sName, MessageType.MESSAGE,
-								// #if Color
-								MessageColor.BLACK,
-								// #endif
-								serverMsg));
+					if (server.pluginRegistry.authenticator != null) {
+						if (!server.pluginRegistry.authenticator.authenticate(this.getConnectionId(), msg.content)) {
+							authResponse.content = "false";
+							this.sendMessage(authResponse);
+							break;
+						}
 					}
+
+					String serverMsg = "New user connected: " + msg.user;
+					server.broadcast(new Message(sName, MessageType.MESSAGE,
+							// #if Color
+							MessageColor.BLACK,
+							// #endif
+							serverMsg));
 
 					this.sendMessage(authResponse);
 					break;
@@ -175,15 +158,8 @@ class UserThread extends Thread {
 					System.out.println("Server received unexpected AUTH_RESPONSE");
 
 					break;
-				// #endif
 				case MESSAGE:
-					// #if Authentication
-					if (this.authenticated) {
-						server.broadcast(msg);
-					}
-					// #else
-//@					server.broadcast(msg);
-					// #endif
+					server.broadcast(msg);
 					break;
 				}
 			}
@@ -203,6 +179,10 @@ class UserThread extends Thread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public String getConnectionId() {
+		return this.socket.getRemoteSocketAddress().toString();
 	}
 
 	void sendMessage(Message message) {

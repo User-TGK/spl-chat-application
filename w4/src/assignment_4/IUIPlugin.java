@@ -2,8 +2,8 @@ package assignment_4;
 
 import java.beans.*;
 
-public interface IUI extends PropertyChangeListener {
-	public void run();
+public interface IUIPlugin extends PropertyChangeListener {
+	public void run(boolean authenticationEnabled);
 	
 	public void addPropertyChangeListener(PropertyChangeListener pcl);
 

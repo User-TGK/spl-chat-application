@@ -22,6 +22,18 @@ public class PluginLoader {
 					this.registry.encryptors.add((IEncryptionPlugin) plugin);
 				}
 
+				else if (plugin instanceof IUIPlugin) {
+					this.registry.uis.add((IUIPlugin) plugin);
+				}
+
+				else if (plugin instanceof IAuthenticationPlugin) {
+					this.registry.authenticator = (IAuthenticationPlugin) plugin;
+				}
+
+				else if (plugin instanceof IColorPlugin) {
+					this.registry.colorer = (IColorPlugin) plugin;
+				}
+
 			} catch (Exception e) {
 				System.out.println("Cannot load plugin " + pluginName + ", reason: " + e);
 			}

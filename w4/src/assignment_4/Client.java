@@ -30,26 +30,26 @@ public class Client {
 
 		Socket socket = new Socket(host, port);
 		ClientConnection connection = new ClientConnection(socket, loader.registry);
-//		#if CommandLine
-		IUI ui = new ConsoleUI();
-//		//#elif Graphical
-//		IUI ui = new GraphicalUI();
-//		//#endif
 
-		connection.addPropertyChangeListener(ui);
-		ui.addPropertyChangeListener(connection);
+		for (IUIPlugin ui : loader.registry.uis) {
+			connection.addPropertyChangeListener(ui);
+			ui.addPropertyChangeListener(connection);
+		}
 
 		connection.start();
-		ui.run();
+		
+		boolean authenticationEnabled = loader.registry.authenticator != null;
+
+		for (IUIPlugin ui : loader.registry.uis) {
+			ui.run(authenticationEnabled);
+		}
 	}
 }
 
 class ClientConnection extends Thread implements PropertyChangeListener {
 	private PropertyChangeSupport support;
 	private Socket socket = null;
-	// #if Authentication
 	private Boolean auth = null;
-	// #endif
 	private PrintWriter writer;
 
 	private PluginRegistry pluginRegistry;
@@ -93,18 +93,14 @@ class ClientConnection extends Thread implements PropertyChangeListener {
 				Message message = Message.deserialize(decryptedMessage);
 				if (message.type == MessageType.MESSAGE) {
 					this.support.firePropertyChange("ClientConnectionMessage", null, message);
-				}
-				// #if Authentication
-				else if (message.type == MessageType.AUTH_RESPONSE) {
+				} else if (message.type == MessageType.AUTH_RESPONSE) {
 					this.auth = Boolean.valueOf(message.content);
 					if (this.auth) {
 						this.support.firePropertyChange("ClientConnectionAuthorized", null, null);
 					} else {
 						this.support.firePropertyChange("ClientConnectionUnauthorized", null, null);
 					}
-				}
-				// #endif
-				else {
+				} else {
 					System.err.println("Received unknown message type");
 				}
 			}
