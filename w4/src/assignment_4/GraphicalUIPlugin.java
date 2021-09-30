@@ -23,15 +23,15 @@ public class GraphicalUIPlugin implements IUIPlugin {
 	private JTextField userField = null;
 	private JButton connectButton = null;
 	private JTextField passwordField = null;
-	// #ifdef Color
 	private JComboBox<MessageColor> colorCombo = null;
-	// #endif
 
 	private String username;
+	private PluginRegistry registry;
 
-	public GraphicalUIPlugin() {
+	public GraphicalUIPlugin(PluginRegistry registry) {
 		this.support = new PropertyChangeSupport(this);
 		this.username = null;
+		this.registry = registry;
 	}
 
 	public void addPropertyChangeListener(PropertyChangeListener pcl) {
@@ -73,11 +73,7 @@ public class GraphicalUIPlugin implements IUIPlugin {
 			Message message = (Message) evt.getNewValue();
 			String msg = message.user + ": " + message.content + "\n";
 
-			// #if Color
 			Color c = this.mClrToJClr(message.color);
-			// #else
-//@			Color c = Color.BLACK;
-			// #endif
 			appendToPane(chatText, msg, c);
 			break;
 		case "ClientConnectionAuthorized":
@@ -136,15 +132,13 @@ public class GraphicalUIPlugin implements IUIPlugin {
 			public void actionPerformed(ActionEvent e) {
 				String user = userField.getText();
 				username = user;
-				// #if Color
 				if (authenticationEnabled) {
 					String password = passwordField.getText();
-					support.firePropertyChange("UI", "message",
-							new Message(user, MessageType.AUTH, MessageColor.BLACK, password));
-					// #else
-					// @ support.firePropertyChange("UI", "message", new Message(user,
-					// MessageType.AUTH, password));
-					// #endif
+					MessageColor c = MessageColor.BLACK;
+					if (registry.colorer != null) {
+						c = registry.colorer.getDefaultColor();
+					}
+					support.firePropertyChange("UI", "message", new Message(user, MessageType.AUTH, c, password));
 				} else {
 					connectButton.setEnabled(false);
 					chatLine.setEnabled(true);
@@ -178,22 +172,20 @@ public class GraphicalUIPlugin implements IUIPlugin {
 			public void actionPerformed(ActionEvent e) {
 				String s = chatLine.getText();
 				chatLine.setText("");
-				// #if Color
 				MessageColor c = (MessageColor) colorCombo.getSelectedItem();
 				support.firePropertyChange("UI", "message", new Message(username, MessageType.MESSAGE, c, s));
-				// #else
-//@		   			support.firePropertyChange("UI", "message", new Message(username, MessageType.MESSAGE, s));
-				// #endif
 			}
 		});
 		chatPane.add(chatLine, BorderLayout.SOUTH);
 		chatPane.add(jsp, BorderLayout.CENTER);
 
-		// #ifdef Color
 		// Dropdown
-		colorCombo = new JComboBox<MessageColor>(MessageColor.values());
+		if (registry.colorer != null) {
+			colorCombo = new JComboBox<MessageColor>(registry.colorer.getColors().toArray(new MessageColor[0]));
+		} else {
+			colorCombo = new JComboBox<MessageColor>(MessageColor.values());			
+		}
 		chatPane.add(colorCombo, BorderLayout.NORTH);
-		// #endif
 
 		chatPane.setPreferredSize(new Dimension(500, 200));
 

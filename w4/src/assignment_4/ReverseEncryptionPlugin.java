@@ -1,6 +1,11 @@
 package assignment_4;
 
 public class ReverseEncryptionPlugin implements IEncryptionPlugin {
+	
+	public ReverseEncryptionPlugin(PluginRegistry registry)
+	{
+		
+	}
 
 	@Override
 	public String encrypt(String data) {		

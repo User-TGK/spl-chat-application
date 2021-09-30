@@ -1,0 +1,23 @@
+In order to run the application you need to provide which plugins you wish to
+load via command line arguments, for example
+
+	client localhost 1234 \
+		assignment_4.ConsoleUIPlugin \
+		assignment_4.DarkThemeColorPlugin
+
+will start the client with the console UI plugin and the dark theme color
+plugin.
+
+We implemented a simple plugin loader based on the code given in the lecture
+slides. When the program starts the application will check the arguments and
+pass the list of plugins to the plugin loader. The plugin loader then loads the
+relevant plugins. The implementation uses reflection to load plugins. At various
+locations the program will check if plugins are available and delegate the work
+to them.
+
+To implement features as plugins we created an interface for each plugin. For
+example, encryption plugins can implement the IEncryptionPlugin interface. Both
+encryption mechanisms that we have used so far are implemented this way. At
+runtime the application will check if any encryption module is loaded and, if
+they are, will call them to encrypt/decrypt messages. The same applies for the
+other features.

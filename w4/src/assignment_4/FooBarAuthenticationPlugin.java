@@ -9,6 +9,11 @@ public class FooBarAuthenticationPlugin implements IAuthenticationPlugin {
 
 	private final List<String> passwords = Arrays.asList("foo", "bar");
 	private Set<String> authenticated = new HashSet<>();
+	
+	public FooBarAuthenticationPlugin(PluginRegistry registry) 
+	{
+		
+	}
 
 	@Override
 	public boolean authenticate(String id, String password) {

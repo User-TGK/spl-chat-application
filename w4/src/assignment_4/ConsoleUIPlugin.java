@@ -5,12 +5,15 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
+import java.util.List;
 
 public class ConsoleUIPlugin implements IUIPlugin {
 	private PropertyChangeSupport support;
+	private PluginRegistry registry;
 
-	public ConsoleUIPlugin() {
+	public ConsoleUIPlugin(PluginRegistry registry) {
 		this.support = new PropertyChangeSupport(this);
+		this.registry = registry;
 	}
 
 	public void addPropertyChangeListener(PropertyChangeListener pcl) {
@@ -61,19 +64,18 @@ public class ConsoleUIPlugin implements IUIPlugin {
 				password = null;
 			}
 
-			// #if Color
-			this.support.firePropertyChange("UI", "message",
-					new Message(username, MessageType.AUTH, MessageColor.BLACK, password));
-			// #else
-//@			this.support.firePropertyChange("UI", "message", new Message(username, MessageType.AUTH, password));
-			// #endif
-
+			MessageColor c = MessageColor.BLACK;
+			if (registry.colorer != null) {
+				c = registry.colorer.getDefaultColor();
+			}
+			this.support.firePropertyChange("UI", "message", new Message(username, MessageType.AUTH, c, password));
 		}
 
 		String input = null;
-		// #if Color
 		MessageColor color = MessageColor.BLACK;
-		// #endif
+		if (registry.colorer != null) {
+			color = registry.colorer.getDefaultColor();
+		}
 		while (true) {
 			try {
 				input = stdIn.readLine();
@@ -84,33 +86,38 @@ public class ConsoleUIPlugin implements IUIPlugin {
 				e.printStackTrace();
 			}
 
-			// #if Color
 			if (input.startsWith("/color")) {
 				String[] cArgs = input.trim().split("\\s+");
 				if (cArgs.length != 2) {
 					System.err.println("Color command format: /color <COLOR>");
 					continue;
 				}
+				
+				MessageColor[] colors = MessageColor.values();
+				if (registry.colorer != null) {
+					colors = registry.colorer.getColors().toArray(new MessageColor[0]);
+				}
 
-				try {
-					color = MessageColor.valueOf(cArgs[1].toUpperCase());
-				} catch (Exception e) {
+				boolean colorExists = false;
+				for (MessageColor c : colors) {
+					if (cArgs[1].equalsIgnoreCase(c.toString())) {
+						color = c;
+						colorExists = true;
+						break;
+					}
+				}
+				
+				if (!colorExists) {
 					System.err.println("Unknown color, use one of the following:");
-					for (MessageColor c : MessageColor.values()) {
+					for (MessageColor c : colors) {
 						System.out.println(c.name());
 					}
 				}
 
 				continue;
 			}
-			// #endif
 
-			// #if Color
 			Message msg = new Message(username, MessageType.MESSAGE, color, input);
-			// #else
-//@			Message msg = new Message(username, MessageType.MESSAGE, input);
-			// #endif
-
 			this.support.firePropertyChange("UI", "message", msg);
 		}
 	}
@@ -120,7 +127,6 @@ public class ConsoleUIPlugin implements IUIPlugin {
 			throw new IllegalArgumentException("Only messages can be printed.");
 		}
 
-		// #if Color
 		String startColor = "";
 
 		switch (msg.color) {
@@ -151,8 +157,5 @@ public class ConsoleUIPlugin implements IUIPlugin {
 		}
 
 		return startColor + msg.content + "\u001b[0m";
-		// #else
-//@		return msg.content;
-		// #endif
 	}
 }

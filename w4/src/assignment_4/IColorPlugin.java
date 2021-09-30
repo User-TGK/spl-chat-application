@@ -1,5 +1,9 @@
 package assignment_4;
 
-public interface IColorPlugin {
+import java.util.List;
 
+public interface IColorPlugin {
+	List<MessageColor> getColors();
+	
+	MessageColor getDefaultColor();
 }

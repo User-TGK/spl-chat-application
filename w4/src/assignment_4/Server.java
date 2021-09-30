@@ -111,9 +111,10 @@ class UserThread extends Thread {
 			OutputStream output = socket.getOutputStream();
 			writer = new PrintWriter(output, true);
 
-			// #if Color
 			MessageColor msgColor = MessageColor.BLACK;
-			// #endif
+			if (server.pluginRegistry.colorer != null) {
+				msgColor = server.pluginRegistry.colorer.getDefaultColor();
+			}
 			String sName = "Server";
 			String clientMessage;
 
@@ -131,11 +132,7 @@ class UserThread extends Thread {
 
 				switch (msg.type) {
 				case AUTH:
-					Message authResponse = new Message(sName, MessageType.AUTH_RESPONSE,
-							// #if Color
-							msgColor,
-							// #endif
-							"true");
+					Message authResponse = new Message(sName, MessageType.AUTH_RESPONSE, msgColor, "true");
 
 					if (server.pluginRegistry.authenticator != null) {
 						if (!server.pluginRegistry.authenticator.authenticate(this.getConnectionId(), msg.content)) {
@@ -146,11 +143,7 @@ class UserThread extends Thread {
 					}
 
 					String serverMsg = "New user connected: " + msg.user;
-					server.broadcast(new Message(sName, MessageType.MESSAGE,
-							// #if Color
-							MessageColor.BLACK,
-							// #endif
-							serverMsg));
+					server.broadcast(new Message(sName, MessageType.MESSAGE, msgColor, serverMsg));
 
 					this.sendMessage(authResponse);
 					break;

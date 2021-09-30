@@ -15,8 +15,16 @@ public class PluginLoader {
 
 			try {
 				Class<?> pluginClass = Class.forName(pluginName);
-				Constructor<?> constructor = pluginClass.getConstructor();
-				Object plugin = constructor.newInstance();
+				Object plugin = null;
+				for (Constructor<?> c : pluginClass.getConstructors()) {
+					if (c.getParameterCount() == 1 && c.getParameterTypes()[0] == PluginRegistry.class) {
+						plugin = c.newInstance(this.registry);
+						break;
+					}
+				}
+				if (plugin == null) {
+					throw new RuntimeException("Plugin is invalid");
+				}
 
 				if (plugin instanceof IEncryptionPlugin) {
 					this.registry.encryptors.add((IEncryptionPlugin) plugin);
