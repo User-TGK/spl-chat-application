@@ -1,5 +1,3 @@
-package assignment_5;
-
 import java.io.*;
 import java.net.*;
 import java.beans.*;
@@ -18,11 +16,8 @@ public class Client {
 
 		Socket socket = new Socket(host, port);
 		ClientConnection connection = new ClientConnection(socket);
-		//#if CommandLine
-//@		IUI ui = new ConsoleUI();
-		//#elif Graphical
+
 		IUI ui = new GraphicalUI();
-		//#endif
 
 		connection.addPropertyChangeListener(ui);
 		ui.addPropertyChangeListener(connection);

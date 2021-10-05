@@ -9,7 +9,7 @@
 		<graphics key="layoutalgorithm" value="1"/>
 	</properties>
 	<struct>
-		<and abstract="true" mandatory="true" name="chat_application">
+		<and mandatory="true" name="chat_application">
 			<graphics key="collapsed" value="false"/>
 			<feature name="Authentication"/>
 			<feature name="Color"/>

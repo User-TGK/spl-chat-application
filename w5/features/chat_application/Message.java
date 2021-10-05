@@ -1,5 +1,3 @@
-package assignment_5;
-
 import java.util.Base64;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -8,33 +6,29 @@ import org.json.simple.parser.ParseException;
 public class Message {
 	public String user;
 	public MessageType type;
-	//#if Color
+	// #if Color
 	public MessageColor color;
-	//#endif
+	// #endif
 	public String content;
 
-	public Message(
-		String user,
-		MessageType type,
-		//#if Color 
-		MessageColor color,
-		//#endif
-		String content) 
-	{
+	public Message(String user, MessageType type,
+			// #if Color
+			MessageColor color,
+			// #endif
+			String content) {
 		this.user = user;
 		this.type = type;
-		//#if Color
+		// #if Color
 		this.color = color;
-		//#endif
+		// #endif
 		this.content = content;
 	}
 
 	public String toString() {
-		return "user: " + this.user 
-				+ ", type: " + this.type.name()
-				//#if Color 
+		return "user: " + this.user + ", type: " + this.type.name()
+		// #if Color
 				+ ", color: " + this.color.name()
-				//#endif
+				// #endif
 				+ ", content: " + this.content;
 
 	}
@@ -43,49 +37,47 @@ public class Message {
 		JSONObject obj = new JSONObject();
 		obj.put("user", this.user);
 		obj.put("type", this.type.name());
-		//#if Color
+		// #if Color
 		obj.put("color", this.color.name());
-		//#endif
+		// #endif
 		obj.put("content", this.content);
 
 		String enc = obj.toJSONString();
-		//#if Base64
+		// #if Base64
 		enc = Base64.getEncoder().encodeToString(obj.toJSONString().getBytes());
-		//#endif
+		// #endif
 
-		//#if Reverse
+		// #if Reverse
 		enc = new StringBuilder(enc).reverse().toString();
-		//#endif
+		// #endif
 
 		return enc;
 	}
 
-	public static Message deserialize(String data) throws ParseException {		
+	public static Message deserialize(String data) throws ParseException {
 		String message = data;
 
-		//#if Reverse
+		// #if Reverse
 		message = new StringBuilder(message).reverse().toString();
-		//#endif
+		// #endif
 
-		//#if Base64
+		// #if Base64
 		message = new String(Base64.getDecoder().decode(message));
-		//#endif
+		// #endif
 
 		JSONObject jsonObject = (JSONObject) new JSONParser().parse(message);
 
 		String user = (String) jsonObject.get("user");
 		MessageType type = MessageType.valueOf((String) jsonObject.get("type"));
-		//#if Color
+		// #if Color
 		MessageColor color = MessageColor.valueOf((String) jsonObject.get("color"));
-		//#endif
+		// #endif
 		String content = (String) jsonObject.get("content");
 
-		return new Message(
-					user, 
-					type,
-					//#if Color 
-					color,
-					//#endif
-					content);
+		return new Message(user, type,
+				// #if Color
+				color,
+				// #endif
+				content);
 	}
 }

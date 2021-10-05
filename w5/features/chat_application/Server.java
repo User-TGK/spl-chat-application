@@ -1,5 +1,3 @@
-package assignment_5;
-
 import java.io.*;
 import java.net.*;
 import java.util.Arrays;
@@ -10,10 +8,10 @@ import java.util.Set;
 import org.json.simple.parser.ParseException;
 
 public class Server {
-	//#if Authentication
+	// #if Authentication
 	private final List<String> passwords = Arrays.asList("foo", "bar");
 	private Set<UserThread> authenticated = new HashSet<>();
-	//#endif
+	// #endif
 
 	private int port;
 	private Set<UserThread> unauthenticated = new HashSet<>();
@@ -24,15 +22,15 @@ public class Server {
 
 	public void execute() {
 		try (ServerSocket serverSocket = new ServerSocket(port)) {
-			//#if Logging
+			// #if Logging
 			System.out.println("Server is listening on port " + port);
-			//#endif
+			// #endif
 
 			while (true) {
 				Socket socket = serverSocket.accept();
-				//#if Logging
+				// #if Logging
 				System.out.println("New client connected");
-				//#endif
+				// #endif
 
 				UserThread newConnection = new UserThread(socket, this);
 				this.unauthenticated.add(newConnection);
@@ -40,10 +38,10 @@ public class Server {
 			}
 
 		} catch (IOException ex) {
-			//#if Logging
+			// #if Logging
 			System.out.println("Error in the server: " + ex.getMessage());
 			ex.printStackTrace();
-			//#endif
+			// #endif
 		}
 	}
 
@@ -60,33 +58,33 @@ public class Server {
 	}
 
 	void broadcast(Message msg) {
-		//#if Logging
+		// #if Logging
 		System.out.println(msg);
-		//#endif
+		// #endif
 
 		Set<UserThread> clients = this.unauthenticated;
-		//#if Authentication
+		// #if Authentication
 		clients = this.authenticated;
-		//#endif
+		// #endif
 
 		for (UserThread user : clients) {
 			user.sendMessage(msg);
 		}
 	}
-	
+
 	void removeConnection(UserThread con) {
-		//#if Authentication
+		// #if Authentication
 		if (authenticated.contains(con)) {
 			authenticated.remove(con);
 		}
-		//#endif
-		
+		// #endif
+
 		if (unauthenticated.contains(con)) {
 			unauthenticated.remove(con);
 		}
 	}
 
-	//#if Authentication
+	// #if Authentication
 	boolean authenticate(String password, UserThread authenticator) {
 		if (this.passwords.contains(password)) {
 			this.unauthenticated.remove(authenticator);
@@ -97,13 +95,13 @@ public class Server {
 
 		return false;
 	}
-	//#endif
+	// #endif
 }
 
 class UserThread extends Thread {
-	//#if Authentication
+	// #if Authentication
 	boolean authenticated;
-	//#endif
+	// #endif
 	private Socket socket;
 	private Server server;
 	private PrintWriter writer;
@@ -112,9 +110,9 @@ class UserThread extends Thread {
 		this.socket = socket;
 		this.server = server;
 
-		//#if Authentication
+		// #if Authentication
 		this.authenticated = false;
-		//#endif
+		// #endif
 	}
 
 	public void run() {
@@ -125,9 +123,9 @@ class UserThread extends Thread {
 			OutputStream output = socket.getOutputStream();
 			writer = new PrintWriter(output, true);
 
-			//#if Color
+			// #if Color
 			MessageColor msgColor = MessageColor.BLACK;
-			//#endif
+			// #endif
 			String sName = "Server";
 			String clientMessage;
 
@@ -135,71 +133,67 @@ class UserThread extends Thread {
 				Message msg = Message.deserialize(clientMessage);
 
 				switch (msg.type) {
-				//#if Authentication
+				// #if Authentication
 				case AUTH:
-					Message authResponse = new Message(
-						sName,
-						MessageType.AUTH_RESPONSE,
-						//#if Color
-						msgColor,
-						//#endif
-						"false");
+					Message authResponse = new Message(sName, MessageType.AUTH_RESPONSE,
+							// #if Color
+							msgColor,
+							// #endif
+							"false");
 
 					if (server.authenticate(msg.content, this)) {
 						this.authenticated = true;
 						authResponse.content = "true";
 
 						String serverMsg = "New user connected: " + msg.user;
-						server.broadcast(new Message(
-							sName,
-							MessageType.MESSAGE,
-							//#if Color 
-							MessageColor.BLACK,
-							//#endif
-							serverMsg));
+						server.broadcast(new Message(sName, MessageType.MESSAGE,
+								// #if Color
+								MessageColor.BLACK,
+								// #endif
+								serverMsg));
 					}
 
 					this.sendMessage(authResponse);
 					break;
 				case AUTH_RESPONSE:
-					//#if Logging
+					// #if Logging
 					System.out.println("Server received unexpected AUTH_RESPONSE");
-					//#endif
+					// #endif
 
 					break;
-				//#endif
+				// #endif
 				case MESSAGE:
-					//#if Authentication
+					// #if Authentication
 					if (this.authenticated) {
 						server.broadcast(msg);
 					}
-					//#else
+					// #else
 //@					server.broadcast(msg);
-					//#endif
+					// #endif
 					break;
 				}
 			}
 		}
 
 		catch (IOException ex) {
-			//#if Logging
+			// #if Logging
 			System.out.println("Error in UserThread: " + ex.getMessage());
 			ex.printStackTrace();
-			//#endif
+			// #endif
 		} catch (ParseException e) {
-			//#if Logging
+			// #if Logging
 			e.printStackTrace();
-			//#endif
+			// #endif
 		} finally {
-			server.removeConnection(this);			
+			server.removeConnection(this);
 		}
 
 		try {
 			this.socket.close();
 		} catch (IOException e) {
-			//#if Logging
+			// #if Logging
 			e.printStackTrace();
-			//#endif
+			// #endif
 		}
 	}
 
