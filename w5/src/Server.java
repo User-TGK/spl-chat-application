@@ -1,22 +1,31 @@
-import java.io.*;
-import java.net.*;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.*; 
+import java.net.*; 
+import java.util.Arrays; 
+import java.util.HashSet; 
+import java.util.List; 
+import java.util.Set; 
 
-import org.json.simple.parser.ParseException;
+import org.json.simple.parser.ParseException; 
 
-public class Server {
+public  class  Server {
+	
 	private int port;
+
+	
 	private final int MAX_CONNECTIONS = 100;
 
+	
+
 	private final UserThread[] unauthenticated;
+
+	
 
 	public Server(int port) {
 		this.port = port;
 		this.unauthenticated = new UserThread[MAX_CONNECTIONS];
 	}
+
+	
 
 	public void execute() {
 		try {
@@ -53,6 +62,8 @@ public class Server {
 		}
 	}
 
+	
+
 	public static void main(String[] args) {
 		if (args.length < 1) {
 			System.out.println("Usage: java server PORT");
@@ -64,6 +75,8 @@ public class Server {
 		Server server = new Server(port);
 		server.execute();
 	}
+
+	
 
 	void broadcast(Message msg) {
 		// #if Logging
@@ -77,6 +90,8 @@ public class Server {
 		}
 	}
 
+	
+
 	void removeConnection(UserThread con) {
 		for (int i = 0; i < MAX_CONNECTIONS; i++) {
 			if (this.unauthenticated[i] != null && this.unauthenticated[i] == con) {
@@ -85,17 +100,30 @@ public class Server {
 			}
 		}
 	}
-}
 
-class UserThread extends Thread {
+
+} 
+
+ 
+
+class  UserThread  extends Thread {
+	
 	private Socket socket;
+
+	
 	private Server server;
+
+	
 	private PrintWriter writer;
+
+	
 
 	public UserThread(Socket socket, Server server) {
 		this.socket = socket;
 		this.server = server;
 	}
+
+	
 
 	public void run() {
 		try {
@@ -160,8 +188,12 @@ class UserThread extends Thread {
 		}
 	}
 
+	
+
 	void sendMessage(Message message) {
 		String msg = message.serialize();
 		this.writer.println(msg);
 	}
+
+
 }

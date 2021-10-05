@@ -1,10 +1,11 @@
-import java.io.*;
-import java.net.*;
-import java.beans.*;
+import java.io.*; 
+import java.net.*; 
+import java.beans.*; 
 
-import org.json.simple.parser.ParseException;
+import org.json.simple.parser.ParseException; 
 
-public class Client {
+public  class  Client {
+	
 	public static void main(String[] args) throws UnknownHostException, IOException {
 		if (args.length != 2) {
 			System.err.println("usage: HOST PORT");
@@ -26,15 +27,27 @@ public class Client {
 		ui.run();
 	}
 
-}
 
-class ClientConnection extends Thread implements PropertyChangeListener {
+} 
+
+ 
+
+class  ClientConnection  extends Thread  implements PropertyChangeListener {
+	
 	private PropertyChangeSupport support;
+
+	
 	private Socket socket = null;
+
+	
 	// #if Authentication
 	private Boolean auth = null;
+
+	
 	// #endif
 	private PrintWriter writer;
+
+	
 
 	public ClientConnection(Socket socket) throws IOException {
 		this.support = new PropertyChangeSupport(this);
@@ -44,13 +57,19 @@ class ClientConnection extends Thread implements PropertyChangeListener {
 		this.writer = new PrintWriter(output, true);
 	}
 
+	
+
 	public void addPropertyChangeListener(PropertyChangeListener pcl) {
 		this.support.addPropertyChangeListener(pcl);
 	}
 
+	
+
 	public void removePropertyChangeListener(PropertyChangeListener pcl) {
 		this.support.removePropertyChangeListener(pcl);
 	}
+
+	
 
 	public void propertyChange(PropertyChangeEvent evt) {
 		try {
@@ -59,6 +78,8 @@ class ClientConnection extends Thread implements PropertyChangeListener {
 			e.printStackTrace();
 		}
 	}
+
+	
 
 	public void run() {
 		try {
@@ -91,7 +112,11 @@ class ClientConnection extends Thread implements PropertyChangeListener {
 		}
 	}
 
+	
+
 	public void sendData(Message msg) throws IOException {
 		this.writer.println(msg.serialize());
 	}
+
+
 }

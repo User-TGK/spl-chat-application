@@ -1,6 +1,5 @@
-/**
- * TODO description
- */
-public  class  MessageType {
-
-}
+public enum  MessageType {
+	// #if Authentication
+	AUTH ,  AUTH_RESPONSE , 
+	// #endif
+	MESSAGE}
