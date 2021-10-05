@@ -1,12 +1,14 @@
 import java.io.*; 
-import java.net.*; 
-import java.beans.*; 
+import java.net.*; import java.beans.*; 
 
 import org.json.simple.parser.ParseException; 
+import java.io.IOException; 
+import java.net.Socket; 
+import java.net.UnknownHostException; 
 
-public  class  Client {
+public   class  Client {
 	
-	public static void main(String[] args) throws UnknownHostException, IOException {
+	public static void main  (String[] args) throws UnknownHostException, IOException {
 		if (args.length != 2) {
 			System.err.println("usage: HOST PORT");
 			System.exit(-1);
@@ -18,7 +20,7 @@ public  class  Client {
 		Socket socket = new Socket(host, port);
 		ClientConnection connection = new ClientConnection(socket);
 
-		IUI ui = new GraphicalUI();
+		UI ui = new UI();
 
 		connection.addPropertyChangeListener(ui);
 		ui.addPropertyChangeListener(connection);

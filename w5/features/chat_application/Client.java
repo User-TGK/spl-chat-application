@@ -17,15 +17,8 @@ public class Client {
 		Socket socket = new Socket(host, port);
 		ClientConnection connection = new ClientConnection(socket);
 
-		IUI ui = new GraphicalUI();
-
-		connection.addPropertyChangeListener(ui);
-		ui.addPropertyChangeListener(connection);
-
 		connection.start();
-		ui.run();
 	}
-
 }
 
 class ClientConnection extends Thread implements PropertyChangeListener {

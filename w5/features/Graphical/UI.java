@@ -1,71 +1,46 @@
-import javax.swing.*; 
-import java.awt.*; 
-import java.awt.event.*; 
-import java.beans.*; 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.beans.*;
 
-import javax.swing.*; 
+import javax.swing.*;
 
-import javax.swing.border.*; 
+import javax.swing.border.*;
 
-import javax.swing.text.AttributeSet; 
-import javax.swing.text.SimpleAttributeSet; 
-import javax.swing.text.StyleConstants; 
-import javax.swing.text.StyleContext; 
+import javax.swing.text.AttributeSet;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
 
-public  class  GraphicalUI  implements IUI {
-	
+public class UI implements PropertyChangeListener {
 	private PropertyChangeSupport support;
 
-	
-
 	private JFrame mainFrame = null;
-
-	
 	private JTextPane chatText = null;
-
-	
 	private JTextField chatLine = null;
-
-	
 	private JTextField userField = null;
-
-	
 	private JButton connectButton = null;
-
-	
 	// #ifdef Authentication
 	private JTextField passwordField = null;
-
-	
 	// #endif
 	// #ifdef Color
 	private JComboBox<MessageColor> colorCombo = null;
-
-	
 	// #endif
 
 	private String username;
 
-	
-
-	public GraphicalUI() {
+	public UI() {
 		this.support = new PropertyChangeSupport(this);
 		this.username = null;
 	}
-
-	
 
 	public void addPropertyChangeListener(PropertyChangeListener pcl) {
 		this.support.addPropertyChangeListener(pcl);
 	}
 
-	
-
 	public void removePropertyChangeListener(PropertyChangeListener pcl) {
 		this.support.removePropertyChangeListener(pcl);
 	}
-
-	
 
 	// #if Color
 	private Color mClrToJClr(MessageColor c) {
@@ -90,8 +65,6 @@ public  class  GraphicalUI  implements IUI {
 			return Color.BLACK;
 		}
 	}
-
-	
 	// #endif
 
 	public void propertyChange(PropertyChangeEvent evt) {
@@ -127,8 +100,6 @@ public  class  GraphicalUI  implements IUI {
 		}
 	}
 
-	
-
 	private void appendToPane(JTextPane tp, String msg, Color c) {
 		StyleContext sc = StyleContext.getDefaultStyleContext();
 		AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
@@ -139,8 +110,6 @@ public  class  GraphicalUI  implements IUI {
 
 		}
 	}
-
-	
 
 	private JPanel initOptionsPane() {
 		JPanel pane = null;
@@ -194,8 +163,6 @@ public  class  GraphicalUI  implements IUI {
 		return optionsPane;
 	}
 
-	
-
 	private void initGUI() {
 		// Set up the options pane
 		JPanel optionsPane = initOptionsPane();
@@ -248,11 +215,8 @@ public  class  GraphicalUI  implements IUI {
 		mainFrame.setVisible(true);
 	}
 
-	
-
 	public void run() {
 		initGUI();
 	}
-
 
 }

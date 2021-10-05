@@ -8,6 +8,6 @@
 	<feature manual="selected" name="Base64"/>
 	<feature manual="selected" name="Reverse"/>
 	<feature automatic="selected" name="UI"/>
-	<feature manual="selected" name="CommandLine"/>
-	<feature automatic="unselected" name="Graphical"/>
+	<feature automatic="unselected" name="CommandLine"/>
+	<feature manual="selected" name="Graphical"/>
 </configuration>

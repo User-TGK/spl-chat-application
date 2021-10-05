@@ -4,10 +4,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
 
-public class ConsoleUI implements IUI {
+public class UI implements PropertyChangeListener {
 	private PropertyChangeSupport support;
 
-	public ConsoleUI() {
+	public UI() {
 		this.support = new PropertyChangeSupport(this);
 	}
 
