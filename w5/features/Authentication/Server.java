@@ -1,37 +1,23 @@
-import java.io.*; 
-import java.net.*; 
-import java.util.Arrays; 
-import java.util.HashSet; 
-import java.util.List; 
-import java.util.Set; 
+import java.io.*;
+import java.net.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import org.json.simple.parser.ParseException; 
+import org.json.simple.parser.ParseException;
 
-public   class  Server {
-	
-	private int port;
+public class Server {
+	private UserThread[] authenticated;
+	private final String[] passwords = { "foo", "bar" };
 
-	
-	private final int MAX_CONNECTIONS = 100;
-
-	
-
-	private UserThread[] unauthenticated;
-
-	
-
-	public Server  (int port) {
-		this.port = port;
-		this.unauthenticated = new UserThread[MAX_CONNECTIONS];
-	
+	public Server(int port) {
 		this.port = port;
 		this.unauthenticated = new UserThread[MAX_CONNECTIONS];
 		this.authenticated = new UserThread[MAX_CONNECTIONS];
 	}
 
-	
-
-	public void execute  () {
+	public void execute() {
 		try {
 			ServerSocket serverSocket = new ServerSocket(port);
 
@@ -60,23 +46,7 @@ public   class  Server {
 		}
 	}
 
-	
-
-	public static void main(String[] args) {
-		if (args.length < 1) {
-			System.out.println("Usage: java server PORT");
-			System.exit(-1);
-		}
-
-		int port = Integer.parseInt(args[0]);
-
-		Server server = new Server(port);
-		server.execute();
-	}
-
-	
-
-	void broadcast  (Message msg) {
+	void broadcast(Message msg) {
 		System.out.println(msg);
 
 		for (int i = 0; i < MAX_CONNECTIONS; i++) {
@@ -86,9 +56,7 @@ public   class  Server {
 		}
 	}
 
-	
-
-	void removeConnection  (UserThread con) {
+	void removeConnection(UserThread con) {
 		for (int i = 0; i < MAX_CONNECTIONS; i++) {
 			if (this.unauthenticated[i] != null && this.unauthenticated[i] == con) {
 				this.unauthenticated[i] = null;
@@ -103,14 +71,6 @@ public   class  Server {
 			}
 		}
 	}
-
-	
-	private UserThread[] authenticated;
-
-	
-	private final String[] passwords = { "foo", "bar" };
-
-	
 
 	boolean authenticate(String password, UserThread authenticator) {
 		for (int i = 0; i < this.passwords.length; i++) {
@@ -138,37 +98,19 @@ public   class  Server {
 
 		return false;
 	}
+}
 
+class UserThread extends Thread {
+	private boolean authenticated;
 
-} 
-
- 
-
-class  UserThread  extends Thread {
-	
-	private Socket socket;
-
-	
-	private Server server;
-
-	
-	private PrintWriter writer;
-
-	
-
-	public UserThread  (Socket socket, Server server) {
-		this.socket = socket;
-		this.server = server;
-	
+	public UserThread(Socket socket, Server server) {
 		this.socket = socket;
 		this.server = server;
 
 		this.authenticated = false;
 	}
 
-	
-
-	public void run  () {
+	public void run() {
 		try {
 			InputStream input = socket.getInputStream();
 			BufferedReader reader = new BufferedReader(new InputStreamReader(input));
@@ -228,16 +170,4 @@ class  UserThread  extends Thread {
 			e.printStackTrace();
 		}
 	}
-
-	
-
-	void sendMessage(Message message) {
-		String msg = message.serialize();
-		this.writer.println(msg);
-	}
-
-	
-	private boolean authenticated;
-
-
 }

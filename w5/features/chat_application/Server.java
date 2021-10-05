@@ -11,7 +11,7 @@ public class Server {
 	private int port;
 	private final int MAX_CONNECTIONS = 100;
 
-	private final UserThread[] unauthenticated;
+	private UserThread[] unauthenticated;
 
 	public Server(int port) {
 		this.port = port;
@@ -22,16 +22,12 @@ public class Server {
 		try {
 			ServerSocket serverSocket = new ServerSocket(port);
 
-			// #if Logging
 			System.out.println("Server is listening on port " + port);
-			// #endif
 
 			while (true) {
 				Socket socket = serverSocket.accept();
 
-				// #if Logging
 				System.out.println("New client connected");
-				// #endif
 
 				UserThread newConnection = new UserThread(socket, this);
 
@@ -46,10 +42,8 @@ public class Server {
 			}
 
 		} catch (IOException ex) {
-			// #if Logging
 			System.out.println("Error in the server: " + ex.getMessage());
 			ex.printStackTrace();
-			// #endif
 		}
 	}
 
@@ -66,9 +60,7 @@ public class Server {
 	}
 
 	void broadcast(Message msg) {
-		// #if Logging
 		System.out.println(msg);
-		// #endif
 
 		for (int i = 0; i < MAX_CONNECTIONS; i++) {
 			if (this.unauthenticated[i] != null) {
@@ -125,9 +117,7 @@ class UserThread extends Thread {
 					this.sendMessage(authResponse);
 					break;
 				case AUTH_RESPONSE:
-					// #if Logging
 					System.out.println("Server received unexpected AUTH_RESPONSE");
-					// #endif
 
 					break;
 				case MESSAGE:
@@ -139,14 +129,10 @@ class UserThread extends Thread {
 		}
 
 		catch (IOException ex) {
-			// #if Logging
 			System.out.println("Error in UserThread: " + ex.getMessage());
 			ex.printStackTrace();
-			// #endif
 		} catch (ParseException e) {
-			// #if Logging
 			e.printStackTrace();
-			// #endif
 		} finally {
 			server.removeConnection(this);
 		}
@@ -154,9 +140,7 @@ class UserThread extends Thread {
 		try {
 			this.socket.close();
 		} catch (IOException e) {
-			// #if Logging
 			e.printStackTrace();
-			// #endif
 		}
 	}
 

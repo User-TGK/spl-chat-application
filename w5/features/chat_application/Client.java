@@ -72,9 +72,7 @@ class ClientConnection extends Thread implements PropertyChangeListener {
 				}
 				// #endif
 				else {
-					// #if Logging
 					System.err.println("Received unknown message type");
-					// #endif
 				}
 			}
 		} catch (IOException e) {
