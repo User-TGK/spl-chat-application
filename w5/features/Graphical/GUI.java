@@ -1,18 +1,31 @@
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.beans.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 
-import javax.swing.*;
-
-import javax.swing.border.*;
-
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 
-public class UI implements PropertyChangeListener {
+public class GUI implements PropertyChangeListener {
 	private PropertyChangeSupport support;
 
 	private JFrame mainFrame = null;
@@ -29,7 +42,7 @@ public class UI implements PropertyChangeListener {
 
 	private String username;
 
-	public UI() {
+	public GUI() {
 		this.support = new PropertyChangeSupport(this);
 		this.username = null;
 	}

@@ -1,13 +1,14 @@
-import java.io.*;
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.beans.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
-public class UI implements PropertyChangeListener {
+public class CLI implements PropertyChangeListener {
 	private PropertyChangeSupport support;
 
-	public UI() {
+	public CLI() {
 		this.support = new PropertyChangeSupport(this);
 	}
 
@@ -66,14 +67,7 @@ public class UI implements PropertyChangeListener {
 			password = null;
 		}
 
-		// #if Color
-		this.support.firePropertyChange("UI", "message",
-				new Message(username, MessageType.AUTH, MessageColor.BLACK, password));
-		// #else
-//@		this.support.firePropertyChange("UI", "message", new Message(username, MessageType.AUTH, password));
-		// #endif
-
-		// #endif
+		this.support.firePropertyChange("UI", "message", new Message(username, MessageType.AUTH, MessageColor.BLACK, password));
 
 		String input = null;
 		// #if Color

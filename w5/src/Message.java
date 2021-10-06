@@ -3,7 +3,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser; 
 import org.json.simple.parser.ParseException; 
 
-public  class  Message {
+public   class  Message {
 	
 	public String user;
 
@@ -11,89 +11,122 @@ public  class  Message {
 	public MessageType type;
 
 	
-	// #if Color
-	public MessageColor color;
-
-	
-	// #endif
 	public String content;
 
 	
-
-	public Message(String user, MessageType type,
-			// #if Color
-			MessageColor color,
-			// #endif
-			String content) {
+	
+	public Message  (String user, MessageType type, String content) {
 		this.user = user;
 		this.type = type;
-		// #if Color
-		this.color = color;
-		// #endif
 		this.content = content;
+	
+		this.color = MessageColor.BLACK;
+	}
+
+	
+
+	 private String  toString__wrappee__chat_application  () {
+		return "user: " + this.user + ", type: " + this.type.name() + ", content: " + this.content;
+
 	}
 
 	
 
 	public String toString() {
-		return "user: " + this.user + ", type: " + this.type.name()
-		// #if Color
-				+ ", color: " + this.color.name()
-				// #endif
-				+ ", content: " + this.content;
+		String s = toString__wrappee__chat_application();
+		return s + ", color: " + this.color.name();
 
+	}
+
+	
+	
+	 private JSONObject  toJSONObject__wrappee__chat_application  ()
+	{
+		JSONObject obj = new JSONObject();
+		obj.put("user", this.user);
+		obj.put("type", this.type.name());
+		obj.put("content", this.content);
+		return obj;
+	}
+
+	
+	
+	protected JSONObject toJSONObject()
+	{
+		JSONObject o = toJSONObject__wrappee__chat_application();
+		o.put("color", this.color.name());
+		return o;
+	}
+
+	
+	
+	 private static Message  fromJSONObject__wrappee__chat_application  (String data) throws ParseException
+	{
+		JSONObject jsonObject = (JSONObject) new JSONParser().parse(data);
+
+		String user = (String) jsonObject.get("user");
+		MessageType type = MessageType.valueOf((String) jsonObject.get("type"));
+		String content = (String) jsonObject.get("content");
+
+		return new Message(user, type, content);
+	}
+
+	
+	
+	protected static Message fromJSONObject(String data) throws ParseException
+	{
+		JSONObject jsonObject = (JSONObject) new JSONParser().parse(data);
+		Message m = fromJSONObject__wrappee__chat_application(data);
+		m.color = MessageColor.valueOf((String) jsonObject.get("color"));
+		return m;
+	}
+
+	
+
+	 private String  serialize__wrappee__chat_application  () {
+		return toJSONObject().toJSONString();
+	}
+
+	
+
+	 private String  serialize__wrappee__Base64  () {
+		return Base64.getEncoder().encodeToString(serialize__wrappee__chat_application().getBytes());
 	}
 
 	
 
 	public String serialize() {
-		JSONObject obj = new JSONObject();
-		obj.put("user", this.user);
-		obj.put("type", this.type.name());
-		// #if Color
-		obj.put("color", this.color.name());
-		// #endif
-		obj.put("content", this.content);
+		return new StringBuilder(serialize__wrappee__Base64()).reverse().toString();
+	}
 
-		String enc = obj.toJSONString();
-		// #if Base64
-		enc = Base64.getEncoder().encodeToString(obj.toJSONString().getBytes());
-		// #endif
+	
 
-		// #if Reverse
-		enc = new StringBuilder(enc).reverse().toString();
-		// #endif
+	 private static Message  deserialize__wrappee__chat_application  (String data) throws ParseException {
+		return fromJSONObject(data);
+	}
 
-		return enc;
+	
+
+	 private static Message  deserialize__wrappee__Base64  (String data) throws ParseException {
+		String enc = new String(Base64.getDecoder().decode(data));
+		return deserialize__wrappee__chat_application(enc);
 	}
 
 	
 
 	public static Message deserialize(String data) throws ParseException {
-		String message = data;
+		String dec = new StringBuilder(data).reverse().toString();
+		return deserialize__wrappee__Base64(dec);
+	}
 
-		// #if Reverse
-		message = new StringBuilder(message).reverse().toString();
-		// #endif
+	
+	public MessageColor color;
 
-		// #if Base64
-		message = new String(Base64.getDecoder().decode(message));
-		// #endif
+	
 
-		JSONObject jsonObject = (JSONObject) new JSONParser().parse(message);
-
-		String user = (String) jsonObject.get("user");
-		MessageType type = MessageType.valueOf((String) jsonObject.get("type"));
-		// #if Color
-		MessageColor color = MessageColor.valueOf((String) jsonObject.get("color"));
-		// #endif
-		String content = (String) jsonObject.get("content");
-
-		return new Message(user, type,
-				// #if Color
-				color,
-				// #endif
-				content);
+	public Message(String user, MessageType type, MessageColor color, String content) {
+		this(user, type, content);
+		this.color = color;
 	}
 
 

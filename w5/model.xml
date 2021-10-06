@@ -22,6 +22,18 @@
 				<feature name="CommandLine"/>
 				<feature name="Graphical"/>
 			</alt>
+			<feature name="Sound"/>
 		</and>
 	</struct>
+	<featureOrder userDefined="true">
+		<feature name="chat_application"/>
+		<feature name="CommandLine"/>
+		<feature name="Graphical"/>
+		<feature name="Authentication"/>
+		<feature name="Color"/>
+		<feature name="Logging"/>
+		<feature name="Base64"/>
+		<feature name="Reverse"/>
+		<feature name="Sound"/>
+	</featureOrder>
 </featureModel>
