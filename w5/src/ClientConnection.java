@@ -1,4 +1,6 @@
-import java.beans.PropertyChangeEvent; import java.beans.PropertyChangeListener; 
+
+import java.beans.PropertyChangeEvent; 
+import java.beans.PropertyChangeListener; 
 import java.beans.PropertyChangeSupport; 
 import java.io.BufferedReader; 
 import java.io.IOException; 
@@ -7,7 +9,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter; 
 import java.net.Socket; 
 
-import org.json.simple.parser.ParseException; 
+import org.json.simple.parser.ParseException; import java.awt.Toolkit; 
 
 public   class  ClientConnection  extends Thread  implements PropertyChangeListener {
 	
@@ -65,7 +67,7 @@ public   class  ClientConnection  extends Thread  implements PropertyChangeListe
 	}
 
 	
-	protected Boolean processMessage(Message msg)
+	 private Boolean  processMessage__wrappee__Authentication  (Message msg)
 	{
 		Boolean alreadyHandled = processMessage__wrappee__chat_application(msg); 
 		if (!alreadyHandled) {
@@ -84,6 +86,18 @@ public   class  ClientConnection  extends Thread  implements PropertyChangeListe
 		}
 		
 		return alreadyHandled;
+	}
+
+	
+	
+	protected Boolean processMessage(Message msg)
+	{
+		Boolean b = processMessage__wrappee__Authentication(msg); 
+		if (b) {
+			Toolkit.getDefaultToolkit().beep();
+		}
+		
+		return b;
 	}
 
 	
@@ -106,8 +120,14 @@ public   class  ClientConnection  extends Thread  implements PropertyChangeListe
 
 	
 
-	public void sendData(Message msg) throws IOException {
+	 private void  sendData__wrappee__chat_application  (Message msg) throws IOException {
 		this.writer.println(msg.serialize());
+	}
+
+	
+	public void sendData(Message msg) throws IOException {
+		sendData__wrappee__chat_application(msg);
+		Toolkit.getDefaultToolkit().beep();
 	}
 
 

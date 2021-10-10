@@ -70,9 +70,6 @@ public class CLI implements PropertyChangeListener {
 		this.support.firePropertyChange("UI", "message", new Message(username, MessageType.AUTH, MessageColor.BLACK, password));
 
 		String input = null;
-		// #if Color
-		MessageColor color = MessageColor.BLACK;
-		// #endif
 		while (true) {
 			try {
 				input = stdIn.readLine();
@@ -85,35 +82,17 @@ public class CLI implements PropertyChangeListener {
 				// #endif
 			}
 
-			// #if Color
-			if (input.startsWith("/color")) {
-				String[] cArgs = input.trim().split("\\s+");
-				if (cArgs.length != 2) {
-					System.err.println("Color command format: /color <COLOR>");
-					continue;
-				}
-
-				try {
-					color = MessageColor.valueOf(cArgs[1].toUpperCase());
-				} catch (Exception e) {
-					System.err.println("Unknown color, use one of the following:");
-					for (MessageColor c : MessageColor.values()) {
-						System.out.println(c.name());
-					}
-				}
-
-				continue;
-			}
-			// #endif
-
-			// #if Color
-			Message msg = new Message(username, MessageType.MESSAGE, color, input);
-			// #else
-//@			Message msg = new Message(username, MessageType.MESSAGE, input);
-			// #endif
-
-			this.support.firePropertyChange("UI", "message", msg);
+    		this.handleInput(username, input);
 		}
+	}
+	
+	private void handleInput(String username, String line) {
+		Message msg = this.constructMessage(username, MessageType.MESSAGE, line);
+		this.support.firePropertyChange("UI", "message", msg);
+	}
+	
+	private Message constructMessage(String username, MessageType type, String content) {
+		return new Message(username, MessageType.MESSAGE, content);
 	}
 
 	private String formatMessage(Message msg) {
@@ -121,39 +100,6 @@ public class CLI implements PropertyChangeListener {
 			throw new IllegalArgumentException("Only messages can be printed.");
 		}
 
-		// #if Color
-		String startColor = "";
-
-		switch (msg.color) {
-		case BLACK:
-			startColor = "\u001b[30m";
-			break;
-		case RED:
-			startColor = "\u001b[31m";
-			break;
-		case GREEN:
-			startColor = "\u001b[32m";
-			break;
-		case YELLOW:
-			startColor = "\u001b[33m";
-			break;
-		case BLUE:
-			startColor = "\u001b[34m";
-			break;
-		case MAGENTA:
-			startColor = "\u001b[35m";
-			break;
-		case CYAN:
-			startColor = "\u001b[36m";
-			break;
-		case WHITE:
-			startColor = "\u001b[36m";
-			break;
-		}
-
-		return startColor + msg.content + "\u001b[0m";
-		// #else
-//@		return msg.content;
-		// #endif
+		return msg.content;
 	}
 }

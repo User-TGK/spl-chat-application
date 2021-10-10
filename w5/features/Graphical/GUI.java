@@ -36,9 +36,6 @@ public class GUI implements PropertyChangeListener {
 	// #ifdef Authentication
 	private JTextField passwordField = null;
 	// #endif
-	// #ifdef Color
-	private JComboBox<MessageColor> colorCombo = null;
-	// #endif
 
 	private String username;
 
@@ -55,43 +52,11 @@ public class GUI implements PropertyChangeListener {
 		this.support.removePropertyChangeListener(pcl);
 	}
 
-	// #if Color
-	private Color mClrToJClr(MessageColor c) {
-		switch (c) {
-		case BLACK:
-			return Color.BLACK;
-		case RED:
-			return Color.RED;
-		case GREEN:
-			return Color.GREEN;
-		case YELLOW:
-			return Color.YELLOW;
-		case BLUE:
-			return Color.BLUE;
-		case MAGENTA:
-			return Color.MAGENTA;
-		case CYAN:
-			return Color.CYAN;
-		case WHITE:
-			return Color.WHITE;
-		default:
-			return Color.BLACK;
-		}
-	}
-	// #endif
-
 	public void propertyChange(PropertyChangeEvent evt) {
 		switch (evt.getPropertyName()) {
 		case "ClientConnectionMessage":
 			Message message = (Message) evt.getNewValue();
-			String msg = message.user + ": " + message.content + "\n";
-
-			// #if Color
-			Color c = this.mClrToJClr(message.color);
-			// #else
-//@			Color c = Color.BLACK;
-			// #endif
-			appendToPane(chatText, msg, c);
+			appendToPane(chatText, message);
 			break;
 		// #ifdef Authentication
 		case "ClientConnectionAuthorized":
@@ -113,12 +78,14 @@ public class GUI implements PropertyChangeListener {
 		}
 	}
 
-	private void appendToPane(JTextPane tp, String msg, Color c) {
+	private void appendToPane(JTextPane tp, Message msg) {
+		String m = msg.user + ": " + msg.content + "\n";
+		
 		StyleContext sc = StyleContext.getDefaultStyleContext();
-		AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
+		AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, Color.black);
 		int len = tp.getDocument().getLength();
 		try {
-			tp.getDocument().insertString(len, msg, aset);
+			tp.getDocument().insertString(len, m, aset);
 		} catch (Exception e) {
 
 		}
@@ -155,12 +122,8 @@ public class GUI implements PropertyChangeListener {
 				username = user;
 				// #if Authentication
 				String password = passwordField.getText();
-				// #if Color
-				support.firePropertyChange("UI", "message",
-						new Message(user, MessageType.AUTH, MessageColor.BLACK, password));
-				// #else
-//@					support.firePropertyChange("UI", "message", new Message(user, MessageType.AUTH, password));
-				// #endif
+				
+				support.firePropertyChange("UI", "message", constructMessage(user, MessageType.AUTH, password));
 				// #else
 //@	            	connectButton.setEnabled(false);
 //@	            	chatLine.setEnabled(true);
@@ -194,22 +157,11 @@ public class GUI implements PropertyChangeListener {
 			public void actionPerformed(ActionEvent e) {
 				String s = chatLine.getText();
 				chatLine.setText("");
-				// #if Color
-				MessageColor c = (MessageColor) colorCombo.getSelectedItem();
-				support.firePropertyChange("UI", "message", new Message(username, MessageType.MESSAGE, c, s));
-				// #else
-//@		   			support.firePropertyChange("UI", "message", new Message(username, MessageType.MESSAGE, s));
-				// #endif
+				support.firePropertyChange("UI", "message", constructMessage(username, MessageType.MESSAGE, s));
 			}
 		});
 		chatPane.add(chatLine, BorderLayout.SOUTH);
 		chatPane.add(jsp, BorderLayout.CENTER);
-
-		// #ifdef Color
-		// Dropdown
-		colorCombo = new JComboBox<MessageColor>(MessageColor.values());
-		chatPane.add(colorCombo, BorderLayout.NORTH);
-		// #endif
 
 		chatPane.setPreferredSize(new Dimension(500, 200));
 
@@ -228,6 +180,10 @@ public class GUI implements PropertyChangeListener {
 		mainFrame.setVisible(true);
 	}
 
+	private Message constructMessage(String username, MessageType type, String content) {
+		return new Message(username, type, content);
+	}
+	
 	public void run() {
 		initGUI();
 	}

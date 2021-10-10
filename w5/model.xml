@@ -29,8 +29,8 @@
 		<feature name="chat_application"/>
 		<feature name="CommandLine"/>
 		<feature name="Graphical"/>
-		<feature name="Authentication"/>
 		<feature name="Color"/>
+		<feature name="Authentication"/>
 		<feature name="Logging"/>
 		<feature name="Base64"/>
 		<feature name="Reverse"/>
