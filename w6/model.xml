@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<featureModel>
+	<properties>
+		<graphics key="legendautolayout" value="true"/>
+		<graphics key="showshortnames" value="false"/>
+		<graphics key="layout" value="horizontal"/>
+		<graphics key="showcollapsedconstraints" value="true"/>
+		<graphics key="legendhidden" value="false"/>
+		<graphics key="layoutalgorithm" value="1"/>
+	</properties>
+	<struct>
+		<and mandatory="true" name="chat_application">
+			<graphics key="collapsed" value="false"/>
+			<or abstract="true" name="Encryption">
+				<feature name="Base64"/>
+				<feature name="Reverse"/>
+			</or>
+		</and>
+	</struct>
+	<featureOrder userDefined="true">
+		<feature name="chat_application"/>
+		<feature name="Base64"/>
+		<feature name="Reverse"/>
+	</featureOrder>
+</featureModel>
